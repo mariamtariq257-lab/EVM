@@ -4,1000 +4,644 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EVM Simulator | Maryam Tariq</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#fff;color:#1E1B4B;min-height:100vh;padding-bottom:70px}
+:root{
+  --navy:#1E1B4B; --ink:#0F172A;
+  --blue:#2563EB; --purple:#7C3AED; --teal:#0D9488;
+  --amber:#D97706; --green:#15803D; --red:#DC2626; --gold:#F9C02E;
+  --bg:#F6F7FB; --line:#E8EAF2; --grey:#64748B;
+}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Inter',sans-serif;background:
+  radial-gradient(1200px 500px at 80% -10%, #EEF0FF 0%, transparent 60%),
+  radial-gradient(1000px 500px at 0% 0%, #F0FBFF 0%, transparent 55%),
+  var(--bg);
+  color:var(--ink);min-height:100vh;padding-bottom:78px}
 
 /* HEADER */
-.hdr{background:linear-gradient(135deg,#1E1B4B,#312E81);padding:13px 24px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(30,27,75,.3)}
-.h-title{font-size:15px;font-weight:800;color:#fff}
-.h-sub{font-size:10px;color:#A5B4FC;margin-top:2px}
-.h-badge{background:#F9C02E;color:#1E1B4B;font-size:10px;font-weight:800;padding:6px 16px;border-radius:16px}
+.hdr{background:linear-gradient(120deg,#1E1B4B,#312E81 60%,#3730A3);
+ padding:15px 26px;display:flex;align-items:center;justify-content:space-between;
+ position:sticky;top:0;z-index:100;box-shadow:0 8px 30px rgba(30,27,75,.28)}
+.h-l{display:flex;align-items:center;gap:12px}
+.h-ic{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#F9C02E,#f59e0b);
+ display:flex;align-items:center;justify-content:center;font-size:19px;
+ box-shadow:0 4px 14px rgba(249,192,46,.4)}
+.h-title{font-size:16px;font-weight:900;color:#fff;letter-spacing:-.2px}
+.h-sub{font-size:10.5px;color:#A5B4FC;margin-top:2px;font-weight:500}
+.h-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+ color:#fff;font-size:11px;font-weight:800;padding:7px 15px;border-radius:20px;backdrop-filter:blur(6px)}
 
 /* TABS */
-.tabs{display:flex;background:#fff;border-bottom:2px solid #E5E7EB;
-  position:sticky;top:52px;z-index:90;overflow-x:auto}
-.tab{flex:1;padding:13px;text-align:center;font-size:12px;font-weight:700;
-  color:#94A3B8;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
-.tab.active{color:#7C3AED;border-bottom-color:#7C3AED}
-.tab:hover:not(.active){color:#1E1B4B;background:#F9FAFB}
+.tabs{display:flex;gap:6px;padding:12px 20px 0;background:transparent;
+ max-width:940px;margin:0 auto}
+.tab{flex:1;padding:13px 12px;text-align:center;font-size:13px;font-weight:800;
+ color:var(--grey);cursor:pointer;border-radius:14px 14px 0 0;transition:.22s;
+ border:1.5px solid transparent;border-bottom:none;position:relative;top:1px;
+ -webkit-tap-highlight-color:transparent}
+.tab:hover:not(.on){color:var(--ink);background:rgba(255,255,255,.5)}
+.tab.on{color:var(--purple);background:#fff;border-color:var(--line);
+ box-shadow:0 -6px 20px rgba(0,0,0,.04)}
 
-/* MAIN */
-.main{max-width:920px;margin:0 auto;padding:28px 20px}
+.main{max-width:940px;margin:0 auto;padding:0 20px 24px}
+.tabc{display:none;animation:fade .35s ease}
+.tabc.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* ── TAB 1: SIMULATOR ── */
+.panel{background:#fff;border:1.5px solid var(--line);border-radius:0 20px 20px 20px;
+ padding:24px;box-shadow:0 18px 50px rgba(30,27,75,.07)}
 
-/* Top: enter values once */
-.data-bar{background:#F8FAFF;border:1.5px solid #E5E7EB;border-radius:16px;
-  padding:20px 24px;margin-bottom:28px}
-.db-title{font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;
-  letter-spacing:1.5px;margin-bottom:16px}
-.db-inputs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.db-inp{background:#fff;border-radius:12px;border:1.5px solid #E5E7EB;padding:14px 16px;
-  transition:border-color .2s}
-.db-inp:focus-within{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.08)}
-.db-inp-label{display:flex;align-items:center;gap:7px;margin-bottom:8px}
-.db-tag{font-size:10px;font-weight:900;color:#fff;padding:2px 9px;
-  border-radius:8px;letter-spacing:.5px}
-.db-inp-name{font-size:11px;font-weight:600;color:#6B7280}
-.db-inp-field{width:100%;border:none;outline:none;font-size:22px;font-weight:900;
-  font-family:'JetBrains Mono',monospace;color:#1E1B4B;background:transparent}
-.db-inp-field::placeholder{color:#D1D5DB}
-.db-inp-hint{font-size:9.5px;color:#94A3B8;margin-top:5px;font-weight:500}
+/* STEP LABEL */
+.step{display:flex;align-items:center;gap:9px;font-size:11px;font-weight:800;
+ color:var(--grey);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:15px}
+.step b{width:20px;height:20px;border-radius:7px;background:var(--ink);color:#fff;
+ display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
 
-/* Metric buttons */
-.metric-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
-.metric-btn{border-radius:12px;padding:13px 10px;text-align:center;cursor:pointer;
-  border:2px solid transparent;transition:all .2s;font-family:'Inter',sans-serif;
-  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.metric-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
-.metric-btn.active{box-shadow:0 8px 28px rgba(0,0,0,.14);transform:translateY(-3px)}
-.mb-tag{font-size:10px;font-weight:900;color:#fff;display:inline-block;
-  padding:2px 10px;border-radius:8px;margin-bottom:6px;letter-spacing:.5px}
-.mb-name{font-size:11px;font-weight:700;color:#374151;margin-bottom:2px}
-.mb-formula{font-size:10px;font-family:'JetBrains Mono',monospace;color:#94A3B8}
+/* INPUTS */
+.inps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+.inp{position:relative;border-radius:16px;padding:15px 15px 13px;
+ border:2px solid var(--line);background:linear-gradient(180deg,#fff,#FCFCFF);
+ transition:.2s;overflow:hidden}
+.inp::before{content:'';position:absolute;inset:0 0 auto 0;height:4px;
+ background:var(--ac);opacity:.9}
+.inp:focus-within{border-color:var(--ac);box-shadow:0 8px 24px var(--acg);transform:translateY(-2px)}
+.inp-top{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.inp-tag{font-size:10px;font-weight:900;color:#fff;padding:3px 9px;border-radius:8px;
+ background:var(--ac);letter-spacing:.5px}
+.inp-nm{font-size:11px;font-weight:700;color:var(--grey)}
+.inp-field{display:flex;align-items:center;gap:5px}
+.inp-cur{font-size:19px;font-weight:900;color:var(--ac)}
+.inp input{width:100%;border:none;outline:none;background:transparent;
+ font-size:23px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--ink);
+ -moz-appearance:textfield}
+.inp input::-webkit-outer-spin-button,.inp input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
-/* Live formula display */
-.formula-display{background:#fff;border:1.5px solid #E5E7EB;border-radius:20px;
-  padding:28px 32px;margin-bottom:28px;min-height:200px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  box-shadow:0 4px 24px rgba(0,0,0,.05)}
-.fd-empty{text-align:center;color:#D1D5DB;font-size:14px;font-weight:600}
-.fd-empty-icon{font-size:48px;margin-bottom:10px}
+/* METRIC BUTTONS */
+.mbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:8px}
+.mbtn{position:relative;border-radius:16px;padding:15px 11px;text-align:center;cursor:pointer;
+ border:2px solid var(--line);background:#fff;transition:.2s;overflow:hidden;
+ -webkit-tap-highlight-color:transparent}
+.mbtn::after{content:'';position:absolute;inset:0;background:var(--ac);opacity:0;transition:.2s}
+.mbtn:hover{transform:translateY(-3px);border-color:var(--ac);box-shadow:0 12px 26px var(--acg)}
+.mbtn.on{border-color:transparent;box-shadow:0 14px 30px var(--acg);transform:translateY(-3px)}
+.mbtn.on::after{opacity:1}
+.mbtn>*{position:relative;z-index:1;transition:.2s}
+.mbtn.on .mb-tag{background:rgba(255,255,255,.25);color:#fff}
+.mbtn.on .mb-nm,.mbtn.on .mb-f{color:#fff}
+.mb-tag{display:inline-block;font-size:11px;font-weight:900;color:#fff;
+ padding:3px 11px;border-radius:9px;background:var(--ac);margin-bottom:7px;letter-spacing:.5px}
+.mb-nm{font-size:11.5px;font-weight:800;color:var(--ink);margin-bottom:3px}
+.mb-f{font-size:10px;font-weight:700;color:var(--grey);font-family:'JetBrains Mono',monospace}
 
-/* Formula animation area */
-.fd-concept{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2px;
-  margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.fd-concept-dot{width:8px;height:8px;border-radius:50%}
+/* FORMULA STAGE */
+.stage{margin-top:22px;border-radius:20px;padding:30px 26px;min-height:230px;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ background:
+   radial-gradient(600px 200px at 50% 0%, var(--acg2) 0%, transparent 70%),
+   linear-gradient(180deg,#FCFCFF,#fff);
+ border:2px solid var(--line);transition:.4s;position:relative;overflow:hidden}
+.stage-empty{text-align:center;color:#C3C8D6}
+.stage-empty .em{font-size:44px;margin-bottom:8px;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.stage-empty .et{font-size:14px;font-weight:700;line-height:1.6}
 
-.fd-equation{display:flex;align-items:center;justify-content:center;
-  gap:14px;flex-wrap:wrap;margin-bottom:24px;row-gap:8px}
-.fd-metric-box{border-radius:14px;padding:14px 20px;text-align:center;min-width:110px;
-  border:2px solid;transition:all .5s;position:relative}
-.fmb-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
-.fmb-name{font-size:10px;font-weight:600;color:#64748B;margin-bottom:8px}
-.fmb-value{font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;
-  line-height:1;animation:countIn .4s ease}
-@keyframes countIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.fx-head{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:900;
+ text-transform:uppercase;letter-spacing:1.6px;margin-bottom:22px}
+.fx-head .d{width:9px;height:9px;border-radius:50%}
+.fx-eq{display:flex;align-items:center;justify-content:center;gap:13px;flex-wrap:wrap;
+ row-gap:10px;margin-bottom:22px}
+.box{border-radius:15px;padding:13px 18px;text-align:center;min-width:104px;border:2px solid;
+ background:#fff;animation:pop .45s cubic-bezier(.34,1.56,.64,1) backwards}
+.box:nth-child(1){animation-delay:.02s}
+.box:nth-child(3){animation-delay:.12s}
+@keyframes pop{from{opacity:0;transform:scale(.7) translateY(10px)}to{opacity:1;transform:none}}
+.box-l{font-size:10px;font-weight:900;letter-spacing:1px;margin-bottom:5px}
+.box-n{font-size:10px;font-weight:600;color:var(--grey);margin-bottom:7px}
+.box-v{font-size:26px;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1}
+.op{font-size:26px;font-weight:800;color:#B4BCCD}
+.eqls{font-size:26px;font-weight:900;color:var(--ink)}
+.res{text-align:center;animation:rise .5s cubic-bezier(.34,1.56,.64,1) .2s backwards}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.res-v{font-size:54px;font-weight:900;font-family:'JetBrains Mono',monospace;line-height:1;
+ margin-bottom:10px;letter-spacing:-1px}
+.res-b{display:inline-flex;align-items:center;gap:7px;border-radius:16px;
+ padding:8px 20px;font-size:14px;font-weight:900}
 
-.fd-operator{font-size:28px;font-weight:900;color:#94A3B8;flex-shrink:0}
-.fd-equals{font-size:28px;font-weight:900;color:#1E1B4B;flex-shrink:0}
+/* progress line */
+.line{width:min(320px,80%);margin:18px auto 0}
+.line-bg{height:9px;border-radius:6px;background:#EEF0F6;position:relative;overflow:visible}
+.line-fl{height:9px;border-radius:6px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.line-mk{position:absolute;top:-4px;width:3px;height:17px;background:#9AA3B5;border-radius:2px}
+.line-lb{display:flex;justify-content:space-between;margin-top:6px;font-size:9.5px;font-weight:800;color:#9AA3B5}
 
-.fd-result-wrap{text-align:center;animation:slideUp .4s ease}
-@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.fd-result-value{font-size:52px;font-weight:900;font-family:'JetBrains Mono',monospace;
-  line-height:1;margin-bottom:8px}
-.fd-result-status{display:inline-flex;align-items:center;gap:8px;border-radius:14px;
-  padding:8px 20px;font-size:14px;font-weight:800}
-.fd-meaning{font-size:12.5px;color:#64748B;margin-top:12px;line-height:1.7;
-  max-width:520px;text-align:center}
-.fd-meaning strong{color:#1E1B4B;font-weight:700}
+/* FORMULA SHEET */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fc{border-radius:16px;padding:17px 19px;border:2px solid var(--line);background:#fff;
+ transition:.2s;position:relative;overflow:hidden}
+.fc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--ac)}
+.fc:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.07);border-color:var(--ac)}
+.fc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.fc-nm{font-size:10.5px;font-weight:700;color:var(--grey)}
+.fc-tag{font-size:11px;font-weight:900;color:#fff;padding:3px 11px;border-radius:9px;background:var(--ac)}
+.fc-f{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:800;color:var(--ac);margin-bottom:11px}
+.fc-r{display:flex;gap:6px;flex-wrap:wrap}
+.fc-p{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:9px}
 
-/* Progress bar in result */
-.fd-bar-wrap{width:280px;margin:12px auto 0}
-.fd-bar-bg{height:10px;background:#F3F4F6;border-radius:5px;overflow:hidden;position:relative}
-.fd-bar-fill{height:10px;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-.fd-bar-marker{position:absolute;top:-3px;height:16px;width:2px;background:#94A3B8}
-.fd-bar-labels{display:flex;justify-content:space-between;margin-top:4px;
-  font-size:9px;font-weight:700;color:#94A3B8}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:16px;overflow:hidden;
+ border:2px solid var(--line);margin-top:22px}
+.tbl th{background:var(--ink);color:#fff;padding:12px 16px;font-size:10.5px;font-weight:800;
+ text-align:left;text-transform:uppercase;letter-spacing:.6px}
+.tbl td{padding:12px 16px;font-size:12.5px;border-bottom:1px solid var(--line);font-weight:600;line-height:1.5}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:nth-child(even) td{background:#FAFBFF}
 
-/* Formula tip */
-.fd-tip{background:#F8FAFF;border:1px solid #E0E7FF;border-radius:10px;
-  padding:10px 14px;margin-top:14px;font-size:11px;color:#4338CA;
-  font-weight:600;line-height:1.55;max-width:520px;text-align:center}
+.traps{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.trap{border-radius:14px;padding:15px 17px;border:2px solid #FBE0E0;background:#FFF7F7;display:flex;gap:11px}
+.trap .i{font-size:18px;flex-shrink:0}
+.trap-t{font-size:12px;font-weight:900;color:var(--red);margin-bottom:4px}
+.trap-x{font-size:11.5px;color:#7A2E2E;line-height:1.55;font-weight:500}
 
-/* ── FORMULA SHEET ── */
-.formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fc{background:#fff;border-radius:14px;padding:18px 20px;border:1.5px solid #E5E7EB;
-  transition:box-shadow .2s}
-.fc:hover{box-shadow:0 4px 20px rgba(0,0,0,.08)}
-.fc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.fc-name{font-size:10.5px;font-weight:700;color:#6B7280}
-.fc-tag{font-size:10px;font-weight:800;color:#fff;padding:2px 10px;border-radius:8px}
-.fc-formula{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;
-  margin-bottom:8px}
-.fc-meaning{font-size:11.5px;color:#374151;line-height:1.6;margin-bottom:8px}
-.fc-rules{display:flex;gap:6px;flex-wrap:wrap}
-.fc-rule{font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px}
-
-.interp-table{width:100%;border-collapse:separate;border-spacing:0;
-  border-radius:14px;overflow:hidden;border:1.5px solid #E5E7EB;margin-top:20px}
-.interp-table th{background:#1E1B4B;color:#fff;padding:11px 16px;font-size:10.5px;
-  font-weight:700;text-align:left;text-transform:uppercase;letter-spacing:.5px}
-.interp-table td{padding:11px 16px;font-size:12px;border-bottom:1px solid #F3F4F6;
-  font-weight:500;line-height:1.5}
-.interp-table tr:last-child td{border-bottom:none}
-.interp-table tr:nth-child(even) td{background:#FAFAFA}
-
-.traps-wrap{margin-top:20px;display:flex;flex-direction:column;gap:10px}
-.trap-card{background:#fff;border-radius:12px;padding:15px 18px;
-  border:1.5px solid #FEE2E2;display:flex;gap:12px;align-items:flex-start}
-.trap-icon{font-size:18px;flex-shrink:0;margin-top:1px}
-.trap-title{font-size:12px;font-weight:800;color:#DC2626;margin-bottom:4px}
-.trap-fix{font-size:11.5px;color:#374151;line-height:1.6}
-
-/* ── QUIZ ── */
-.quiz-score-bar{background:linear-gradient(135deg,#7C3AED,#0D9488);
-  border-radius:14px;padding:16px 22px;text-align:center;color:#fff;margin-bottom:22px}
-.qsb-num{font-size:36px;font-weight:900;line-height:1}
-.qsb-lbl{font-size:11px;font-weight:600;opacity:.85;margin-top:3px}
-.qcard{background:#fff;border-radius:16px;padding:22px;border:1.5px solid #E5E7EB;
-  margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
-.qcard-sc{background:#F0F4FF;border-radius:10px;padding:13px;
-  border-left:4px solid #7C3AED;margin-bottom:14px}
-.qcard-sc-label{font-size:9.5px;font-weight:800;color:#7C3AED;text-transform:uppercase;
-  letter-spacing:1px;margin-bottom:5px}
-.qcard-sc-text{font-size:13px;color:#1E1B4B;line-height:1.7}
-.qcard-data{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
-.qcard-datum{background:#fff;border:1.5px solid #C7D2FE;border-radius:7px;
-  padding:4px 11px;font-family:'JetBrains Mono',monospace;font-size:11px;
-  font-weight:700;color:#4338CA}
-.qcard-concept{font-size:10px;font-weight:800;color:#6B7280;text-transform:uppercase;
-  letter-spacing:1px;margin-bottom:10px}
-.qcard-q{font-size:14px;font-weight:700;color:#1E1B4B;margin-bottom:14px;line-height:1.6}
-.qcard-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.qcard-opt{background:#F8FAFF;border:2px solid #E5E7EB;border-radius:10px;
-  padding:11px 14px;cursor:pointer;font-size:12.5px;font-weight:600;
-  color:#374151;text-align:left;transition:all .2s;font-family:'Inter',sans-serif;
-  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.qcard-opt:hover:not(.done){border-color:#7C3AED;background:#F5F3FF;color:#5B21B6}
-.qcard-opt.correct{border-color:#15803D;background:#DCFCE7;color:#14532D}
-.qcard-opt.wrong{border-color:#DC2626;background:#FEE2E2;color:#7F1D1D}
-.qcard-opt.done{cursor:not-allowed;pointer-events:none}
-.qcard-exp{display:none;background:#F0FDF4;border-left:4px solid #15803D;
-  border-radius:0 10px 10px 0;padding:12px 14px;margin-top:8px;
-  font-size:11.5px;color:#166534;line-height:1.7}
-.qcard-exp.show{display:block}
-.qcard-exp .kh{font-weight:800;font-family:'JetBrains Mono',monospace;
-  background:#DCFCE7;padding:0 4px;border-radius:3px}
-.quiz-next{width:100%;background:linear-gradient(135deg,#7C3AED,#0D9488);
-  border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:800;
-  color:#fff;cursor:pointer;font-family:'Inter',sans-serif;
-  display:none;margin-top:10px;transition:opacity .2s}
-.quiz-next.show{display:block}
-.quiz-next:hover{opacity:.88}
+/* QUIZ */
+.qbar{background:linear-gradient(120deg,var(--purple),var(--teal));border-radius:18px;
+ padding:18px 24px;color:#fff;margin-bottom:20px;display:flex;align-items:center;
+ justify-content:space-between;box-shadow:0 14px 34px rgba(124,58,237,.24)}
+.qbar-n{font-size:34px;font-weight:900;line-height:1;font-family:'JetBrains Mono',monospace}
+.qbar-l{font-size:12px;font-weight:600;opacity:.9;margin-top:3px}
+.qbar-ring{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.16);
+ display:flex;align-items:center;justify-content:center;font-size:24px}
+.qc{border-radius:18px;padding:22px;border:2px solid var(--line);background:#fff;
+ box-shadow:0 12px 34px rgba(30,27,75,.06)}
+.qc-sc{background:linear-gradient(180deg,#F5F3FF,#F0F4FF);border-radius:13px;padding:14px 16px;
+ border-left:4px solid var(--purple);margin-bottom:15px}
+.qc-scl{font-size:10px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.qc-sct{font-size:13px;color:var(--ink);line-height:1.65;font-weight:500}
+.qc-data{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.qc-dm{background:#fff;border:1.5px solid #C7D2FE;border-radius:9px;padding:5px 12px;
+ font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:800;color:#4338CA}
+.qc-cn{font-size:10px;font-weight:900;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-bottom:11px}
+.qc-q{font-size:14.5px;font-weight:800;color:var(--ink);margin-bottom:15px;line-height:1.55}
+.qc-opts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.opt{background:#FAFBFF;border:2px solid var(--line);border-radius:12px;padding:12px 15px;
+ cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);text-align:left;transition:.18s;
+ -webkit-tap-highlight-color:transparent}
+.opt:hover:not(.done){border-color:var(--purple);background:#F5F3FF;transform:translateY(-1px)}
+.opt.correct{border-color:var(--green);background:#EAFBF0;color:#12602F}
+.opt.wrong{border-color:var(--red);background:#FDEDED;color:#7A2E2E}
+.opt.done{cursor:default;pointer-events:none;opacity:.65}
+.opt.correct,.opt.wrong{opacity:1}
+.qc-exp{display:none;border-radius:0 12px 12px 0;padding:13px 16px;margin-top:9px;
+ font-size:12px;line-height:1.65;font-weight:500}
+.qc-exp.show{display:block;animation:fade .3s}
+.qc-exp.ok{background:#EAFBF0;border-left:4px solid var(--green);color:#12602F}
+.qc-exp.no{background:#FDEDED;border-left:4px solid var(--red);color:#7A2E2E}
+.qc-exp .k{font-weight:800;font-family:'JetBrains Mono',monospace;background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px}
+.qnext{width:100%;border:none;border-radius:13px;padding:14px;font-size:14px;font-weight:900;
+ color:#fff;cursor:pointer;font-family:inherit;margin-top:11px;display:none;
+ background:linear-gradient(120deg,var(--purple),var(--teal));box-shadow:0 10px 26px rgba(124,58,237,.28);transition:.18s}
+.qnext:hover{transform:translateY(-2px)}
+.qnext.show{display:block;animation:fade .3s}
 
 /* BANNER */
-.banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1E1B4B,#312E81);
-  padding:11px 22px;display:flex;align-items:center;justify-content:space-between;
-  z-index:100;box-shadow:0 -4px 20px rgba(30,27,75,.2)}
-.bn-l{display:flex;align-items:center;gap:12px}
-.bn-photo{width:38px;height:38px;border-radius:50%;border:2px solid #F9C02E;object-fit:cover}
-.bn-name{font-size:11.5px;font-weight:800;color:#fff}
-.bn-sub{font-size:9px;color:#A5B4FC;margin-top:1px}
-.bn-pill{background:#F9C02E;color:#1E1B4B;font-size:10px;font-weight:800;
-  padding:6px 16px;border-radius:14px}
+.bnr{position:fixed;bottom:0;left:0;right:0;z-index:100;
+ background:linear-gradient(120deg,#1E1B4B,#312E81);padding:11px 22px;
+ display:flex;align-items:center;justify-content:space-between;gap:10px;
+ box-shadow:0 -8px 30px rgba(30,27,75,.2)}
+.bnr-l{display:flex;align-items:center;gap:12px;min-width:0}
+.bnr-ph{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--gold);object-fit:cover;flex-shrink:0}
+.bnr-nm{font-size:12px;font-weight:900;color:#fff}
+.bnr-sb{font-size:9.5px;color:#A5B4FC;margin-top:1px}
+.bnr-p{background:linear-gradient(135deg,#F9C02E,#f59e0b);color:#1E1B4B;font-size:11px;
+ font-weight:900;padding:8px 16px;border-radius:14px;white-space:nowrap;flex-shrink:0;
+ box-shadow:0 4px 14px rgba(249,192,46,.4)}
 
-.tab-content{display:none}
-.tab-content.active{display:block}
-.sec-title{font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;
-  letter-spacing:1.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.sec-title::after{content:'';flex:1;height:1px;background:#E5E7EB}
-
-@media(max-width:680px){
-  /* Header */
-  .hdr{padding:10px 14px;flex-wrap:wrap;gap:6px}
-  .h-title{font-size:13px}
-  .h-badge{font-size:9px;padding:4px 10px}
-
-  /* Tabs */
-  .tab{font-size:11px;padding:10px 4px}
-
-  /* Main padding */
-  .main{padding:16px 12px}
-
-  /* Data bar */
-  .data-bar{padding:14px 14px}
-  .db-inputs{grid-template-columns:1fr 1fr;gap:10px}
-  .db-inp{padding:11px 12px}
-  .db-inp-field{font-size:18px}
-  .db-inp-hint{font-size:8.5px}
-
-  /* Metric buttons — 2x4 grid on mobile */
-  .metric-buttons{grid-template-columns:repeat(2,1fr);gap:8px}
-  .metric-btn{padding:10px 8px}
-  .mb-tag{font-size:9px;padding:2px 7px}
-  .mb-name{font-size:10px}
-  .mb-formula{font-size:9px}
-
-  /* Formula display */
-  .formula-display{padding:18px 14px;min-height:160px}
-  .fd-equation{gap:6px;flex-wrap:wrap;justify-content:center}
-  .fd-metric-box{padding:10px 12px;min-width:80px}
-  .fmb-label{font-size:8px}
-  .fmb-name{font-size:8.5px}
-  .fmb-value{font-size:20px}
-  .fd-operator{font-size:20px}
-  .fd-equals{font-size:20px}
-  .fd-result-value{font-size:36px}
-  .fd-result-status{font-size:12px;padding:6px 14px}
-  .fd-meaning{font-size:11.5px}
-  .fd-tip{font-size:10.5px;padding:8px 12px}
-  .fd-bar-wrap{width:100%;max-width:100%}
-
-  /* Formula sheet */
-  .formula-grid{grid-template-columns:1fr}
-  .fc{padding:14px}
-  .fc-formula{font-size:15px}
-
-  /* Interp table */
-  .interp-table th,.interp-table td{padding:9px 10px;font-size:11px}
-
-  /* Quiz */
-  .qcard{padding:16px 14px}
-  .qcard-opts{grid-template-columns:1fr}
-  .qcard-opt{padding:10px 12px;font-size:12px}
-  .qcard-q{font-size:13px}
-  .qcard-sc-text{font-size:12px}
-
-  /* Banner */
-  .banner{padding:9px 14px;flex-wrap:wrap;gap:6px}
-  .bn-name{font-size:10.5px}
-  .bn-sub{font-size:8.5px}
-  .bn-pill{font-size:9px;padding:5px 12px}
-
-  /* Section titles */
-  .sec-title{font-size:10px}
-
-  /* Trap cards */
-  .trap-card{padding:12px 14px}
-  .trap-title{font-size:11.5px}
-  .trap-fix{font-size:10.5px}
+/* ===== TABLET ===== */
+@media(max-width:720px){
+ .fgrid,.traps,.qc-opts{grid-template-columns:1fr}
 }
 
-/* Extra small — phones under 380px */
+/* ===== MOBILE ===== */
+@media(max-width:560px){
+ body{padding-bottom:70px}
+ .hdr{padding:12px 16px}
+ .h-ic{width:34px;height:34px;font-size:17px;border-radius:10px}
+ .h-title{font-size:15px}
+ .h-sub{display:none}
+ .h-badge{font-size:10px;padding:6px 12px}
+
+ /* tabs: slimmer, icon-forward */
+ .tabs{padding:10px 12px 0;gap:5px}
+ .tab{padding:11px 6px;font-size:12px;border-radius:12px 12px 0 0}
+
+ .main{padding:0 12px 20px}
+ .panel{padding:16px 14px;border-radius:0 16px 16px 16px}
+
+ .step{font-size:10px;letter-spacing:1px;margin-bottom:12px}
+ .step b{width:18px;height:18px;font-size:10px}
+
+ /* inputs 2x2, tighter */
+ .inps{grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px}
+ .inp{padding:12px 12px 11px;border-radius:14px}
+ .inp-top{margin-bottom:7px;gap:5px}
+ .inp-tag{font-size:9px;padding:2px 7px}
+ .inp-nm{font-size:9.5px}
+ .inp-cur{font-size:16px}
+ .inp input{font-size:19px}
+
+ /* metric buttons 2-up, comfortable tap size */
+ .mbtns{grid-template-columns:1fr 1fr;gap:9px}
+ .mbtn{padding:13px 10px;border-radius:14px}
+ .mb-tag{font-size:10px;padding:3px 10px;margin-bottom:6px}
+ .mb-nm{font-size:11px}
+ .mb-f{font-size:9.5px}
+
+ /* stage: compact but punchy */
+ .stage{padding:22px 16px;min-height:auto;border-radius:16px;margin-top:18px}
+ .fx-head{font-size:11px;letter-spacing:1px;margin-bottom:18px;
+   flex-wrap:wrap;justify-content:center;text-align:center;row-gap:2px}
+ .fx-eq{gap:10px;row-gap:8px;margin-bottom:18px}
+ .box{min-width:0;flex:1 1 40%;max-width:46%;padding:11px 8px;border-radius:12px}
+ .box-l{font-size:9px}
+ .box-n{font-size:8.5px;margin-bottom:5px}
+ .box-v{font-size:19px}
+ .op{font-size:20px;flex:0 0 auto}
+ .eqls{font-size:22px;width:100%;text-align:center;margin:2px 0}
+ .res{width:100%;margin-top:4px}
+ .res-v{font-size:44px;margin-bottom:8px}
+ .res-b{font-size:13px;padding:7px 16px}
+ .line{width:100%;margin-top:14px}
+
+ /* formula sheet */
+ .fc{padding:14px 15px;border-radius:14px}
+ .fc-f{font-size:15px}
+ .fc-nm{font-size:10px}
+ .tbl th,.tbl td{padding:10px 11px;font-size:11.5px}
+
+ /* quiz */
+ .qbar{padding:15px 18px;border-radius:15px}
+ .qbar-n{font-size:30px}
+ .qbar-ring{width:46px;height:46px;font-size:21px}
+ .qc{padding:17px 15px;border-radius:15px}
+ .qc-sct{font-size:12.5px}
+ .qc-q{font-size:14px}
+ .qc-dm{font-size:11px;padding:4px 10px}
+ .opt{padding:12px 14px;font-size:12.5px}
+ .qc-exp{font-size:11.5px}
+
+ /* banner */
+ .bnr{padding:9px 14px}
+ .bnr-ph{width:36px;height:36px}
+ .bnr-nm{font-size:10.5px;line-height:1.3}
+ .bnr-sb{display:none}
+ .bnr-p{font-size:10px;padding:7px 13px}
+}
+
+/* ===== SMALL PHONES ===== */
 @media(max-width:380px){
-  .db-inputs{grid-template-columns:1fr}
-  .db-inp-field{font-size:16px}
-  .fmb-value{font-size:17px}
-  .fd-result-value{font-size:30px}
-  .metric-buttons{grid-template-columns:repeat(2,1fr)}
-  .h-title{font-size:12px}
-  .hdr{gap:4px}
+ .tab{font-size:11px;padding:10px 4px}
+ .tab .lbl-full{display:none}
+ .inp input{font-size:17px}
+ .res-v{font-size:38px}
+ .box-v{font-size:17px}
+ .bnr-p{font-size:9.5px;padding:6px 11px}
 }
+
+/* tap feel on all touch targets */
+.mbtn,.opt,.tab,.qnext,.bnr-p{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <div>
-    <div class="h-title">📊 EVM Simulator — Earned Value Management</div>
-    <div class="h-sub">Enter values · Click any metric · See the formula come alive</div>
+  <div class="h-l">
+    <div class="h-ic">📊</div>
+    <div>
+      <div class="h-title">EVM Simulator</div>
+      <div class="h-sub">Enter values · tap a metric · watch the formula come alive</div>
+    </div>
   </div>
   <div class="h-badge">PMP Process Domain</div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('sim')">🎮 Live Simulator</div>
-  <div class="tab" onclick="switchTab('formulas')">📐 Formula Sheet</div>
-  <div class="tab" onclick="switchTab('quiz')">🎯 Quiz</div>
+  <div class="tab on" data-t="sim">🎮 Live Simulator</div>
+  <div class="tab" data-t="form">📐 Formula Sheet</div>
+  <div class="tab" data-t="quiz">🎯 Quiz</div>
 </div>
 
-<!-- ══════════ TAB 1: SIMULATOR ══════════ -->
-<div class="tab-content active" id="tab-sim">
 <div class="main">
 
-  <!-- DATA ENTRY BAR -->
-  <div class="data-bar">
-    <div class="db-title">① Enter your project numbers — just once</div>
-    <div class="db-inputs">
-      <div class="db-inp">
-        <div class="db-inp-label">
-          <span class="db-tag" style="background:#1D4ED8">BAC</span>
-          <span class="db-inp-name">Budget at Completion</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:18px;font-weight:800;color:#1D4ED8">$</span>
-          <input class="db-inp-field" id="v-bac" type="number" placeholder="30000" value="30000" oninput="onInput()">
-        </div>
-        <div class="db-inp-hint">Total approved project budget</div>
-      </div>
-      <div class="db-inp">
-        <div class="db-inp-label">
-          <span class="db-tag" style="background:#D97706">PV</span>
-          <span class="db-inp-name">Planned Value</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:18px;font-weight:800;color:#D97706">$</span>
-          <input class="db-inp-field" id="v-pv" type="number" placeholder="20000" value="20000" oninput="onInput()">
-        </div>
-        <div class="db-inp-hint">Value of work planned by today</div>
-      </div>
-      <div class="db-inp">
-        <div class="db-inp-label">
-          <span class="db-tag" style="background:#15803D">EV</span>
-          <span class="db-inp-name">Earned Value</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:18px;font-weight:800;color:#15803D">$</span>
-          <input class="db-inp-field" id="v-ev" type="number" placeholder="16000" value="16000" oninput="onInput()">
-        </div>
-        <div class="db-inp-hint">Value of work actually completed</div>
-      </div>
-      <div class="db-inp">
-        <div class="db-inp-label">
-          <span class="db-tag" style="background:#DC2626">AC</span>
-          <span class="db-inp-name">Actual Cost</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:18px;font-weight:800;color:#DC2626">$</span>
-          <input class="db-inp-field" id="v-ac" type="number" placeholder="19000" value="19000" oninput="onInput()">
-        </div>
-        <div class="db-inp-hint">Money actually spent on work done</div>
-      </div>
+<!-- ============ SIMULATOR ============ -->
+<div class="tabc on" id="tab-sim"><div class="panel">
+
+  <div class="step"><b>1</b> Enter your project numbers</div>
+  <div class="inps">
+    <div class="inp" style="--ac:#2563EB;--acg:rgba(37,99,235,.16)">
+      <div class="inp-top"><span class="inp-tag">BAC</span><span class="inp-nm">Budget at Completion</span></div>
+      <div class="inp-field"><span class="inp-cur">$</span><input id="v-bac" type="number" value="30000"></div>
+    </div>
+    <div class="inp" style="--ac:#D97706;--acg:rgba(217,119,6,.16)">
+      <div class="inp-top"><span class="inp-tag">PV</span><span class="inp-nm">Planned Value</span></div>
+      <div class="inp-field"><span class="inp-cur">$</span><input id="v-pv" type="number" value="20000"></div>
+    </div>
+    <div class="inp" style="--ac:#15803D;--acg:rgba(21,128,61,.16)">
+      <div class="inp-top"><span class="inp-tag">EV</span><span class="inp-nm">Earned Value</span></div>
+      <div class="inp-field"><span class="inp-cur">$</span><input id="v-ev" type="number" value="16000"></div>
+    </div>
+    <div class="inp" style="--ac:#DC2626;--acg:rgba(220,38,38,.16)">
+      <div class="inp-top"><span class="inp-tag">AC</span><span class="inp-nm">Actual Cost</span></div>
+      <div class="inp-field"><span class="inp-cur">$</span><input id="v-ac" type="number" value="19000"></div>
     </div>
   </div>
 
-  <!-- METRIC BUTTONS -->
-  <div class="sec-title">② Click any metric to see the formula fill with your numbers</div>
-  <div class="metric-buttons" id="metric-btns">
+  <div class="step"><b>2</b> Tap any metric</div>
+  <div class="mbtns" id="mbtns"></div>
 
-    <div class="metric-btn" id="mbtn-sv" onclick="showMetric('sv')" style="background:#FFF7ED;border-color:#FED7AA">
-      <div class="mb-tag" style="background:#D97706">SV</div>
-      <div class="mb-name">Schedule Variance</div>
-      <div class="mb-formula">EV − PV</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-cv" onclick="showMetric('cv')" style="background:#FFF5F5;border-color:#FECACA">
-      <div class="mb-tag" style="background:#DC2626">CV</div>
-      <div class="mb-name">Cost Variance</div>
-      <div class="mb-formula">EV − AC</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-spi" onclick="showMetric('spi')" style="background:#FFFBEB;border-color:#FDE68A">
-      <div class="mb-tag" style="background:#B45309">SPI</div>
-      <div class="mb-name">Schedule Index</div>
-      <div class="mb-formula">EV ÷ PV</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-cpi" onclick="showMetric('cpi')" style="background:#F0FDF4;border-color:#A7F3D0">
-      <div class="mb-tag" style="background:#15803D">CPI</div>
-      <div class="mb-name">Cost Index</div>
-      <div class="mb-formula">EV ÷ AC</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-eac" onclick="showMetric('eac')" style="background:#F5F3FF;border-color:#DDD6FE">
-      <div class="mb-tag" style="background:#7C3AED">EAC</div>
-      <div class="mb-name">Estimate at Completion</div>
-      <div class="mb-formula">BAC ÷ CPI</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-etc" onclick="showMetric('etc')" style="background:#EFF6FF;border-color:#BFDBFE">
-      <div class="mb-tag" style="background:#2563EB">ETC</div>
-      <div class="mb-name">Estimate to Complete</div>
-      <div class="mb-formula">EAC − AC</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-vac" onclick="showMetric('vac')" style="background:#F0FDFA;border-color:#A7F3D0">
-      <div class="mb-tag" style="background:#0D9488">VAC</div>
-      <div class="mb-name">Variance at Completion</div>
-      <div class="mb-formula">BAC − EAC</div>
-    </div>
-
-    <div class="metric-btn" id="mbtn-tcpi" onclick="showMetric('tcpi')" style="background:#FFF5F5;border-color:#FECACA">
-      <div class="mb-tag" style="background:#9D174D">TCPI</div>
-      <div class="mb-name">To-Complete Index</div>
-      <div class="mb-formula">(BAC−EV)÷(BAC−AC)</div>
-    </div>
-
-  </div>
-
-  <!-- LIVE FORMULA DISPLAY -->
-  <div class="sec-title">③ Live formula — your values filled in</div>
-  <div class="formula-display" id="formula-display">
-    <div class="fd-empty">
-      <div class="fd-empty-icon">👆</div>
-      Click any metric above<br>to see the formula come alive with your numbers
+  <div class="stage" id="stage" style="--acg2:rgba(124,58,237,.08)">
+    <div class="stage-empty">
+      <div class="em">👆</div>
+      <div class="et">Tap a metric above<br>to see it calculate live</div>
     </div>
   </div>
 
-</div>
-</div>
+</div></div>
 
-<!-- ══════════ TAB 2: FORMULA SHEET ══════════ -->
-<div class="tab-content" id="tab-formulas">
-<div class="main">
-  <div class="sec-title">All EVM Formulas</div>
-  <div class="formula-grid">
+<!-- ============ FORMULA SHEET ============ -->
+<div class="tabc" id="tab-form"><div class="panel">
+  <div class="step"><b>✦</b> All EVM formulas</div>
+  <div class="fgrid" id="fgrid"></div>
 
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Schedule Variance</div>
-        <span class="fc-tag" style="background:#D97706">SV</span>
-      </div>
-      <div class="fc-formula" style="color:#D97706">SV = EV − PV</div>
-      <div class="fc-meaning">Positive = ahead of schedule. Negative = behind schedule. Measured in dollars — not days.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DCFCE7;color:#15803D">SV &gt; 0 → Ahead ✅</span>
-        <span class="fc-rule" style="background:#FEE2E2;color:#DC2626">SV &lt; 0 → Behind ❌</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Cost Variance</div>
-        <span class="fc-tag" style="background:#DC2626">CV</span>
-      </div>
-      <div class="fc-formula" style="color:#DC2626">CV = EV − AC</div>
-      <div class="fc-meaning">Positive = under budget. Negative = over budget. Compares value earned to money spent.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DCFCE7;color:#15803D">CV &gt; 0 → Under ✅</span>
-        <span class="fc-rule" style="background:#FEE2E2;color:#DC2626">CV &lt; 0 → Over ❌</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Schedule Performance Index</div>
-        <span class="fc-tag" style="background:#B45309">SPI</span>
-      </div>
-      <div class="fc-formula" style="color:#B45309">SPI = EV ÷ PV</div>
-      <div class="fc-meaning">How much value delivered per $1 of planned work. Above 1.0 = efficient. Below 1.0 = behind.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DCFCE7;color:#15803D">SPI &gt; 1.0 → Ahead ✅</span>
-        <span class="fc-rule" style="background:#FEF3C7;color:#D97706">SPI &lt; 1.0 → Behind ⚠️</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Cost Performance Index</div>
-        <span class="fc-tag" style="background:#15803D">CPI</span>
-      </div>
-      <div class="fc-formula" style="color:#15803D">CPI = EV ÷ AC</div>
-      <div class="fc-meaning">Value earned per $1 spent. The most critical EVM index. Above 1.0 = under budget per unit.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DCFCE7;color:#15803D">CPI &gt; 1.0 → Efficient ✅</span>
-        <span class="fc-rule" style="background:#FEE2E2;color:#DC2626">CPI &lt; 1.0 → Over budget ❌</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Estimate at Completion</div>
-        <span class="fc-tag" style="background:#7C3AED">EAC</span>
-      </div>
-      <div class="fc-formula" style="color:#7C3AED">EAC = BAC ÷ CPI</div>
-      <div class="fc-meaning">Projected total cost at completion assuming current CPI continues. The key forecast number.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DCFCE7;color:#15803D">EAC ≤ BAC → On budget ✅</span>
-        <span class="fc-rule" style="background:#FEE2E2;color:#DC2626">EAC &gt; BAC → Overrun ❌</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Estimate to Complete</div>
-        <span class="fc-tag" style="background:#2563EB">ETC</span>
-      </div>
-      <div class="fc-formula" style="color:#2563EB">ETC = EAC − AC</div>
-      <div class="fc-meaning">How much more money is needed from today to finish. EAC is total. ETC is the remaining portion.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DBEAFE;color:#1D4ED8">ETC = remaining spend</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">Variance at Completion</div>
-        <span class="fc-tag" style="background:#0D9488">VAC</span>
-      </div>
-      <div class="fc-formula" style="color:#0D9488">VAC = BAC − EAC</div>
-      <div class="fc-meaning">Projected surplus or overrun at end of project. Positive = surplus. Negative = overrun projected.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#CCFBF1;color:#0D9488">VAC &gt; 0 → Surplus ✅</span>
-        <span class="fc-rule" style="background:#FEE2E2;color:#DC2626">VAC &lt; 0 → Overrun ❌</span>
-      </div>
-    </div>
-
-    <div class="fc">
-      <div class="fc-top">
-        <div class="fc-name">To-Complete Performance Index</div>
-        <span class="fc-tag" style="background:#9D174D">TCPI</span>
-      </div>
-      <div class="fc-formula" style="color:#9D174D">TCPI = (BAC−EV) ÷ (BAC−AC)</div>
-      <div class="fc-meaning">CPI needed on remaining work to stay within BAC. If TCPI &gt; current CPI — must work more efficiently.</div>
-      <div class="fc-rules">
-        <span class="fc-rule" style="background:#DCFCE7;color:#15803D">TCPI ≤ CPI → Achievable ✅</span>
-        <span class="fc-rule" style="background:#FEF3C7;color:#D97706">TCPI &gt; CPI → Harder ⚠️</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- INTERPRETATION TABLE -->
-  <div class="sec-title" style="margin-top:24px">Interpretation Rules</div>
-  <table class="interp-table">
-    <thead>
-      <tr>
-        <th>Value</th><th>SV / CV means</th><th>SPI / CPI means</th>
-      </tr>
-    </thead>
+  <div class="step" style="margin-top:24px"><b>≡</b> Interpretation rules</div>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>SV / CV</th><th>SPI / CPI</th></tr></thead>
     <tbody>
-      <tr>
-        <td style="font-family:JetBrains Mono,monospace;font-weight:800;color:#15803D">= 0 or 1.0</td>
-        <td>Exactly on schedule / on budget</td><td>Perfect — 100% efficiency</td>
-      </tr>
-      <tr>
-        <td style="font-family:JetBrains Mono,monospace;font-weight:800;color:#15803D">&gt; 0 or &gt; 1.0</td>
-        <td>Ahead of schedule / under budget ✅</td><td>Efficient — more value per dollar ✅</td>
-      </tr>
-      <tr>
-        <td style="font-family:JetBrains Mono,monospace;font-weight:800;color:#DC2626">&lt; 0 or &lt; 1.0</td>
-        <td>Behind schedule / over budget ❌</td><td>Inefficient — less value per dollar ❌</td>
-      </tr>
+      <tr><td style="font-family:'JetBrains Mono';font-weight:800;color:#15803D">= 0 / 1.0</td><td>On schedule / on budget</td><td>Perfect — 100% efficient</td></tr>
+      <tr><td style="font-family:'JetBrains Mono';font-weight:800;color:#15803D">&gt; 0 / &gt; 1.0</td><td>Ahead / under budget ✅</td><td>Efficient — more per $ ✅</td></tr>
+      <tr><td style="font-family:'JetBrains Mono';font-weight:800;color:#DC2626">&lt; 0 / &lt; 1.0</td><td>Behind / over budget ❌</td><td>Inefficient — less per $ ❌</td></tr>
     </tbody>
   </table>
 
-  <!-- TRAPS -->
-  <div class="sec-title" style="margin-top:24px">Classic Exam Traps</div>
-  <div class="traps-wrap">
-    <div class="trap-card">
-      <div class="trap-icon">⚠️</div>
-      <div><div class="trap-title">Comparing AC to PV directly</div><div class="trap-fix">Budget performance uses CV = EV − AC. Never compare AC to PV. That comparison has no meaning in EVM.</div></div>
-    </div>
-    <div class="trap-card">
-      <div class="trap-icon">⚠️</div>
-      <div><div class="trap-title">Thinking SV is measured in days</div><div class="trap-fix">SV is in dollars — it measures planned value vs earned value in money terms. It is NOT calendar days.</div></div>
-    </div>
-    <div class="trap-card">
-      <div class="trap-icon">⚠️</div>
-      <div><div class="trap-title">Confusing EAC with ETC</div><div class="trap-fix">EAC = total projected cost at completion. ETC = remaining cost from today. ETC = EAC − AC.</div></div>
-    </div>
-    <div class="trap-card">
-      <div class="trap-icon">⚠️</div>
-      <div><div class="trap-title">TCPI formula — wrong denominator</div><div class="trap-fix">TCPI = (BAC−EV) ÷ (BAC−AC). Numerator = remaining work value. Denominator = remaining budget.</div></div>
-    </div>
+  <div class="step" style="margin-top:24px"><b>⚠</b> Classic exam traps</div>
+  <div class="traps" id="traps"></div>
+</div></div>
+
+<!-- ============ QUIZ ============ -->
+<div class="tabc" id="tab-quiz"><div class="panel">
+  <div class="qbar">
+    <div><div class="qbar-n" id="q-score">0 / 0</div><div class="qbar-l">Answered correctly</div></div>
+    <div class="qbar-ring" id="q-ring">🎯</div>
   </div>
+  <div id="q-box"></div>
+</div></div>
 
 </div>
-</div>
 
-<!-- ══════════ TAB 3: QUIZ ══════════ -->
-<div class="tab-content" id="tab-quiz">
-<div class="main">
-  <div class="quiz-score-bar">
-    <div class="qsb-num" id="quiz-score-display">0 / 0</div>
-    <div class="qsb-lbl">Questions answered correctly</div>
-  </div>
-  <div id="quiz-container"></div>
-</div>
-</div>
-
-<!-- BANNER -->
-<div class="banner">
-  <div class="bn-l">
-    <img class="bn-photo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCADIAMgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9B9H+CNppmo6fcXHjDW76y0q4+02llMYljV85GSqg9Rk4xnvxkFuqfA2wv7+/ktfF+t2On6nP9ourCAxGNmyScFkJAyeM5x27Y9Ooq/aTve53/wBp4zm5/aO/r53/AD1v31OU8R/D6x1+LQraPULiyg0G4jmhSJVfzFQABGLgnGFHI5qr4w+GcPijWYPEVl4k1PRdSgiNuZrIp88fPBDA4PzEZBGQcHPGO1opKcl1MYYuvTacJtWvb57/AH9TzkfBbSotE0zRrfX9RT+z9R/tKSdlid7iUgAhgV2quFAwoHT1ya6DTfBMOm+NtT8aJqdxI+pwLC9qyJ5ceNvzKwG7+DoSRya6aihzk92OeOxNRNTm3e99e7u/vauFFFFScoUUUUAFFNeRI1LyOFVeSScAVhX/AIjAzFYDP/TRh/IU0rmlOlKq7RRsXN5bWib7iVUHYHqfoKwr3xJNISlknlr/AH25b8u1ZEsss7mSaRnc9SxyaZVqKPQpYOENZasfJLJM5klkZ2PUscmmUUUzsSsFFFFABRRRQAUUUUAFFFFABRRRQB31FFFZHz4UUUUAFFFFABRRSdOTQAtUdQ1a209cMd8pHCL1/H0qjqmviMtb2JBboZOw+nrXPMzOxd2LMTkknk1Sj3O2hhHP3p7Fm91G6v33TvhR0QfdFVaKKs9KMVFWQUUUUDCiiigAooooAKKKKACiiigAooooAKKKKAO+ooorI+fCiiigAoopskiRI0kjBVUZJPYUADukal3YKoGST0Fczq2tvdk29qSsPQnoX/wFR6tq737mKIlYFPA7t7n/AArNq1Huenh8Ly+/PcKKKKo7QooooAKKKKACiiigAooooAKKKKACiiigAooqq160xMenxiYg4MpOIlP+9/EfZfxIp2GouWxYlligjaWaRY0XqzHAFFQxWSiQXFzIbiZeVZhhU/3V6L9eT70U9CvcXn/XoejUUUVgfOBRRRQAjMFBZiAAMkntXK6xqzX0nkwkiBT/AN9n1+lWNe1XzWNjbt8i8SMO59PpWJVxXU9LC4fl/eS+QUUUVR3BRRRQAUUUUAFFFFABRRRQAUUUUAFFFUNe1iHQNKn1a4jZ44ANwDBepxkk9B/+rvTAv1BPeRwv5Cq005GRFHy2PU9lHucVkeG9ffxjpUerWaPZWkjMg+YNI+OpBxhRz6bvoa2oLeC1j8uCMIucnHUn1JPJPuadrbl8qj8W/Yg+yTXXOoOCh/5d4ydn/Aj1f9B7GraqFUKoACjAAGAB6UUUr3E5NhRRRSJO+ooorI+fCsrXNS+xw+RC2JpR1/uj1rQubmO1geeU4VBn6+1cXc3El3O88pyznP09qqKudWFo+0lzPZEVFFFWesFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFUj/xMLvbjNtaPz6SzDt7qv6t/u0+9mlLJZWr7Z5gTvH/LKPu/17D3PsaV5LfToIreGIscbIYUPzNj6/mWPTqapaGsVZXW72KNnbSWklyliF8y3lOYScLLE3zJ9GGSob/ZweOmnb3EV1F5sROMlWVhhlYdVYdiPSsuW3v7fUoLz7aPOukaF0I/cZX5kXHXpvG7rn24qcM08zT2q+RfRqPNgkPEq9skdR/dcdOh7iqauaVIqet/n/n8+po0VFbXMd0hZAysh2vG3DI3oR/kEcipajY52mnZhRRRSEd9RRVa/ulsrWS4OMqPlHqx6VkeAk5OyMPxFfebMLONvli5f3b/AOtWNSszOxdjksck+ppK1Sse3SpqlBRQUUUUGgUUUUAFFFFABRRRQAUUUUAFFFFABUdzcx2kDTy5IXACryWY8BR6knAFS4zxWObp768D2qrJ5Wfs4b7gzwZ39uoQdTyRwcikrmlOHM7vZE0bSWmd6CbUbv52jVuFA4AJ7IvTPc5xkmrVtaeSWmmk824kADyEY4/uqP4VHp+JyaW1tUtlY7mklkO6SVvvOff0HoBwKmobCc76L+v+AVdUjdrJ5IhmWAieP3ZDux+IBH40+WG3voo5QSOA8UqHDJkcEH6duh7irGcc1S0oeVBJYnObOVoRn+595P8Ax1gPwo6Am+XTp+pXm+0RTI0zpFcjCR3OMRTj+5IP4T6e/KnqtXrW6W5DKUaOWI7ZYm+8h/qD2PQ1K6JIjRyIrowwysMgj0IrLubOe0Kz2ryOIgQhwXkiXupHWSP/AGfvDquafxFpxqKz0f8AX9fl2NWiqthqEV/HkELIAC6BtwwejKf4lPY/gcEEUVL03MnFxdmekVznia73zR2aniMb2+p6fp/OuhZgqlmOABk/SuIup2ubmS4bq7E/h2rOKPIwcOafN2IqKKKs9UKKKKACiiigAooooAKKKKACigkAFiQAOpJwBVb+0IXJW0SS6I4/dDKj6ucL+tO1xqLexZpHdI13yuqIOrMQB+tV9moT/fljtVPaMeY//fR+UfkaWOwtUcStGZZB/HM29h9M9PwxRZDsluzg9V8datdrGljCFtLlGeR1gclIlUMyq38TnIjyBgOSMdz21nPpVpGLaC4SPHJEh2OT6ndjn+XTpUWo2NjHd2eqG0h82K5UNJsGfnGzd9cleevFabDeNrgMPQ8iqbVki3JKCj0/UFIcZQhh6jkUVXbTrBju+yRq3qg2H81xSfYio/c3t1H7eZvH/jwNToRaL2ZZqm37jVkbot5CUP8Avx8j81Zv++aeU1CMErdQSADnzIiv6qf6Vw/iDxXeLfSL5Lt9gugV+zSF444ljDGaTG04fc6Llgo2kcmqjG+xpSg5StHW/wDXU9BormPDmu6lf3D2n2Nzi2W4ZLiciSAl2UAgrv2uoDqG5AzyRit/OpN0S0T6s7/0FLla3M+RrcrX2lNJIL3TpRb3aksD/A5PXcPfue/fPBBVkRX5+9ewr/uW+f5tRTUrG0arSs7P1X/AO21yfyNOlwcNJhB+P/1s1yNb/iib/UW4Pq5/kP61gVnHY8zBx5ad+4UUUUzrCisPxr438KfDrwze+MPG2uW2kaPp6b57m4bAGeAqgcsxPAVQST0Ffm9+0T/wUS8bePjeeFfhAtz4T8PybozqOcaneJ0J3A4t1PouXx1YdKmU1Hcyq1o0viPvf4qftEfBr4Lr5fxD8d2Gn3pTemnRZuL1x2xDHlhnHBbA96+T/HP/AAVO0+Fprf4bfCie5HSK71y+EQPv5MIJ/AvX553V9cXNxLdXNxLNPM26WWRy7ux7sx5Y/U1B5/zbXxk9un/16wdWTOCeMnL4dD7PT/gpx8drqX914Y8EQr/d+x3D/qZq2n/4KXfGBdMXd4H8JC6UjfKgnO4d/kMmB279q+KbB5V2sige54rUg82/vreCOABy68kgZ9OamU5RV7mUa9Vu3MfVKf8ABTj41xlUl0LwlkcMXsZckj6SDFdj4d/4KZ+MbieIa74C0Ca3yBMbOeWGXHcpvLrn6jFfIHxr8Df8IzqsN9CAI7yOOYjGMFlBP61xGk3T7gqLkgdQKmlWdSKkmXOrWozs2frx8OP2y/gB8QHgtdW1+48P6rK4RLbxAAsZY9Nkq5gx9dtfQkUsU8Mc0EqSRSKGjdGDKy9ipHBH0r8MYC7LiYYB6FvT6j/69er/AAc/aV+KHwSnWLwlr7XWlbw02i6gTLaPzztGcxsRn5kI9wa6FVf2jaGOk9Kh+vNFeMfs/ftK+Ef2g9KkbQdSGma9Yxh9Q0W6gBmhB43owbEsef4hyOAwBr17ytR/6CEX/gN/9lWys1dM9GPLNXjJfj/kOv7c3VjPbr954yE/3uq/qBT7W4F3bQ3SjAmjWTHpkZxUQi1IHI1CLj/p2/8AsqpabZu0c9nd3Usi207xiNP3aFT86528nhvXHFVbQ1UU4b7ev9djQlvbaF/KaTdL/wA84wXf8h0/GozJfzA+XDHbL/emO9sf7oOB+LfhTnktNOjWNIgm84SKJPmc+wHX69B3NRi1mvDv1AAR9Vt1OV/4Gf4z7fd+vWloJJLX+vkit9n/ALQI8qRp0HW5nwyf9s4/uk/7RGP96rA0XTOC9qGfBVpdxEjA9QXBBI9untV2ihu5MpuSt0MnSdMsV05LUW6pJayPEXTKvvU43buuSoU5zVvdfWh+dTeRf3kAEq/UdG/DB9jSQ4g1S4h6C5jW4X/eX5H/AE2GrlDZU5WfkRwXEF0he3kDgHDY6qfQg8g+xops9nBO4mO6OZRhZYztce2e49jkUUtCbRezNrxFKX1Er2RFH9f61l1c1d9+pXB/28fkAKp0lsYUVanFeQVT1nWNL8PaTe69rl/BY6dp0D3N1czttjhiQZZ2PoAKuV+eH/BS39oK4nvoP2f/AA5clLW2EV/4gdSP30pG6C29cKMOwPUlfSpnLlVwq1FSjzHgn7Xv7UOq/tD+NNunSzWfg3RZHTRrN8qZcnBuplzjzXHQfwrgepPz68ucnGAe3r9f8KiaXzpDuOVUkD3Pc0p5y5IGBnnsPU+9cmr1Z405ubuxTIeeQMdT2FRo7F/3S7ie+DVewt9Q8Q6klhp0LPubAwCfxr60+Cv7MWlalbxX3iVXlc7TsY4AB9q5sRioYde9udWEwNTFv3dj5y0e3upmCGFiCP4VOf0rt/DPg/XJtXtbqPSbuSINnLIx49getfd/hz9nrwFpyAW2iwqQOu3mu+0/4ZeGbVVWLTYQyjAOOR9PSvPnmMpq0Ynr08nhSfNKV2fFfx98E694v0bTbrSdOkY21tGkkSZ+UquM4PY183weH9T0q52ajZy25HHzxlf/AK2K/YCHwNojqyyWiEHjGOKw/EXwC8BeIbdku9Kt2yCOVGR9PSlQxc6StbQeIy6nXd07M/LSW/FpFkYyR1Iyrf4frWFceIEmmKgbWHYdvcHvX2J8av2M4dPtbjUvBF60bqC32ZxlG9cCviHxXo+p+H9Tm07UrZ4ZYXKlWB4x3B9K9OjioV9FueLicFVw2stV3O78EfEPxB4M8S2PizwxrM2l6tp0u+2vYD88Z6EMDwVIOCDwQSDX6y/svftF2X7QXg03H223tPFOkIketac0I2qx4WeLBBMT4OO6nKnsT+JltqckMgO7Le/RvY17V+zj8cdV+C3xN0fx3p0ksltA3kahaK2Ptdi+PNiPuOGUnoyqa6oTcGThq8qMvI/bPfqS9YLaX/ckZCfzB/nXI3HijxDB4zl0a28LzLBMkIe5OZVUfN+8wnXg9Dj7nOK6DRPFWh+JPDFl4w0O9W80rUbWO8tZo+fNjcAqB7knGPXir1jbyQQsZyDPM3mzYPG89h7AAKPYV2p6XPcjJcvNYgs5dNicsbsNcSDDvOdkje2GAwPYDFaHbI6etNdVkXbIoZfRhkfkar/2dZg7oojCx7wuYz/46cUtGS3GTu/6/Is0VW+zXaf6nUHOO00av+owf1o8zUI/v2sMoHeKTafyYf1pWFy32YzUP3UlpedBFMI3P+xJ8p/8e2H8KuVQvZ4rizmtriK4t/MjZd0kR2qccHcuRwcHrUdlqUut2cM9g+yKVAXucAjd/EIx0Jzkbug7Zp2djT2cnBN9P6/zLc93sk+zW0YmuCAducKgP8TnsP1PYUVJb28VrH5UKYXOSSclj3JJ5J9zRRdIjmitEi5qBzfXB9ZW/nVep74Yvbgf9NW/nUFSZQ+FehQ8Qa3Y+GdB1LxJqkipZ6VaTXtwzHAEcSF2/Ra/Bv4jePNU+IHi/W/G2rTSSXmt30145dixG9iVXJ7KuFHsBX6lf8FIPic/gP8AZ7n8N2VwYr/xpeppS4xn7Ko8y4+mQEX/AIFX5CyTAy4PRctXPVd3Y4MbO8lFFlSEXDAYQYPv7Vbls7m9jh0+yGbm9kEYrPgYu6IRxnew9a6vwTaajqni20i0oRefENyNLwiHPU+tc9SfJBs5qFP2k1E+mvgF+z/a6VY2+oanEsl1Iu5mx3PbNfVnhbwtHpwRIQABgDHWvl/TvCeqajBCviP4qzW0u3CJb/Ki+wGR+laz+G/HvhZDfeF/ivcTLHhj5xdVP1zla+dnFVZOUp6n2FNzoRUIU7I+1NP00rGobjArUi03upyK+SfBnxo+LmlSx2/idbfUbc8CVCN2PXIxkV9CeDfHp1+1SdEdGOMq3UVGkXYbU5K53sNi2OOnerp00mPCnmuK8QeMl0G3e6uiVRRuO0da8a8UftReJLPdD4S8J3uozdFyML9TVxmr2Rm6ctz2bxRo1xOrxuuVIwa+N/2of2dJPEdhPr3h+zDXkQZyqL8z969K0r4v/tJeKMbvDek6ajE48+VA35Ek1a1Lxt8VtGtTP4u8M2es2Tf619PcGWHPfHGaFGVGXPCQpNVoOnUi7H5XahZXOn3UtpeRtFPCxV1IwRirWk37qCQTmNt2PWvoT9rv4ZW1vcw/E7w8mLDUinnLtxtYjg47eh96+a7GYRS44weK9/D1lXpqaPlsXh5YWq4P5H6wf8E1vi9H4w8AT/CvVr4NeeEpmvbCN2Jaa0lPAHtE5bj/AGwe1fa9fid+xZ8VJ/hX+0D4V1Z5yunX1z/ZN+CQAba4IQk54+VijZ/2a/bIjBIyDjjiu+lLmjbsd+GqupTSfQSiiq8t9GshggRriZescePl/wB5jwv48+1a2udKi5bFj6VWa+V2MVnGbiRThipxGp/2n6fgMn2pptJrnm/lBQ/8sIiQn/Aj1f8AQe1WlVUUIihVUYAAwAPYU9EVpHzKVxBtt5bvUZvOEKNJ5ajbEu0E/d/i6dWz9BUGlQ/2UttZniG5iVl9Fn25ce27lh7hvWrOr5bT5IB1nZIB/wADcA/oTU95bLeQPAWKEkMjjqjA5Vh9Dg076amin7lpbMloqCyuWuYd0qhJUYxzIP4XHUD26EexFFS9DFxadjR1Nduo3IP/AD0JqrWhr0ezU5ePvhW/T/61Z/H8RwO59B60kZUneCfkfmR/wVe8d2up/ELwb8PrSaN30HTZr67CnJSW6dQqkdv3cQb/AIEK+C25Vj3Y4/CvTP2lPiHN8UPjr4z8ayPIYr/V7gWyydUt4z5cS/giLXmJb7oz90Z/GuOT5m2eTWlz1Gye2kZGL44LYH0Fe6/Ar4dXviOOXWbZjG5OFOK8IhyxSIDJYhQPev0M/Z+8MWnh3wzp1p5YMnko8hP94jJrzMyq+zgorqe1keF9vUc30PH734W+OIfEIl1e+updM3fNFDMbZ2H++P5Zq78P/gv4vsvEFvJe+OrmDTPtW+cRXcxuWi3ZCD5tmcfL3Ayetfd2h6fp19AiTWcEnH8SA1uReFPD1v8Av10+2jb2jUf0rzY4qpy2Vreh7NXBUlLmle/qfLtn8PPE8esyt563Ghy7ts5G24U44LKFCN9V2nuQa9R+Dvm6dqSWF8dxzxn0rpfGmrafYRG0tcM7dEjG48VzngJJLjW0vwCCTgLjmuWc7zTSOunSbg1Jnb/EXSP7dumsrYiKPIHTpXzL458NfEGyk1WPSvs9lJbRONP89BL9okHQsm7CA9i24+wr6t1kyWepsZkI3AEcVej0Twz4otf+JpaWsz453gZ/xrSnJczursxqQlGCSdl5H5++H9I+OfiHUpIvFOp3OjWNtDI/7uO3uWnkONiqipgAc55H1zXoPwX8KfGwX066yI/7NDkDfKQxHZvLJOzPcA4r66h+D3hIN5tvpMQA7CV8flmp73TNM0S2NpZWkUWB/CK1q1OZWcUjKhS5ZXhJv1Z8g/ta+FmHwd1aBIU3QiN+B0+cZxX5vw25j8xnyGU5z6V+nP7XuqG2+G+oWyfM97LFbKvrlsn9FNfmjqzrHevaRYwHJbH8q9HLJP2bXmeLnkFCsn5FnTbuSCeGaNtro4IYdQa/dz4B/EiL4hfBnwZ4rmdZr7UdJhM0MJ3N5qDy3JH8OSuSTgc1+DNuP7nJHOK/Sj/gnr46k1v4Yaj4MuXHm+H7vzocAA+RNzg464cN+de3hkpVOV9TzcFNRnZ9T79+z3l1zeSGGM/8sYWOT/vP1/BcfU1ZiiigjEUMaxovRVGAK8sh1DULf/UX1xH/ALsprQg8W69Bj/TfNA7SoG/XrXoPDy6M9Rzb06HotFcbbePZ1wLzT43HcxOVP5HNa9p4x0S5wJJnt2PaVcD8xkVlKjOPQm5fvvnurCDsZ2lP0RGI/UrVyqEU0N5qqyQSpKkFqSGRgRmR/b2jq/UPTQ0nsl5FK5IsrtL7pDNthuPQHoj/AIE7T7EelFXJI45o2ilQOjqVZSMgg9QaKLrqUnCS9+9/KxueKIttxDMBw6FT9Qf/AK9eb/FzxlbfD34XeLPG10+1dG0e6uV5xmQRkRge5cqPxr1XxHB5tiJQOYmDfgeDXxd/wUn8VS+Hv2bLjTLeYJJr2rWtky92iTdK4H/fC5rJu0WzzqFT9xfsfkHdvJcXUk0rEySsWYk9WJyT+eaqZy5AH+c1Kz/OT9T/AJ/Ook5b05rlPNvqbvgyyXUvFWk2TEfvruMEH+L5v/rV+gnhm5m0oRBQQu0Y9K/OzR9Y/wCEf13TdZwf9BuY5mA7hTyPyzX6NeFbqx8RaPa6hZyJJFPEskbKc5UjI/Q14ebJ80X0PqOH6sYxlHqekaF40a3UAOVI6nNXL3x9d6gWtbKY5A+dx2/+vVDw3oumXabLhQpxz2rz/wCKln8UfDUC3Xw4GmXMEZInhuY2L4z95SDj14NeXBOWlz3Z1ruyRpavc+JLG8mvbIi480BSsrtgY7jH8qpeFPiB4p8NaoZL9beNGJ2mEPx9Q39DWD4a8Q+MdWeO3v8AxNb2UkkyRHztLwiqVyX3AngHIycV6Fo/hnx3PZwalZ+JfBeoGaXyws3yMo3bQeR+lWqbbKdXkXvaeqf+Rty/Erxzr2oW0mieHhqEIGHluJimf90BT+ZIrpNZfXtNgTW4g0cuA00S5249BWFfXfxD8PJ9ibxP4Pt5l8spFAhkJDNgnCrwBXE6b8Q/2jvE3iF9BtfBehyaWrASaldyPBle7LGMk+2QMmm6bZjz6Xjt8/8AI9i8P/E6O+twqXZLdCN3enar4m85GYzEnHPNc/bfDWOOdtR88QyyAeYkZwpfucdqv/2FbQAmViwUc5NZNt6M0VaMNUjwD9oW98Pa1p623ifW7XTrS1V7vfPOEy2Nq8dWH3unrX5yanKtxqtzcIwZZJnZWAxuGeD+WK9p/bC8VWfjf416odKlSay0OKPTImTlSyZMhH/A2Iz7V4lChDsr9s4r6TL6Do01Jvf8D4zNcZ9Zq8qWif3lnTwWmQdOlfXX7BXim08O/FttJvZjEmuWMtlH6ecCHQH64I+pFfJdmVSRcd2wfpXo/wAMPFUng3x7oviKM82F/DI4zgMoYbhn025r0Iy5JqXY8+lLkkmfsNRUFlfWmpW0V7YzpNDOiyxsjZBVhkH8jU9fQHtWsFFFA5NAhtlcXFvcz3FtPJE24ICjFTwB6e5NdHYeNtUtiFu0S6T1Pyv+Y4P4iuYtOYBJ/wA9GZ/zJ/pipHkSNd0jADoPf6etTKEZbo1qX53Fen3aHpOm+KNI1EhBP5Ep/wCWc3y5PsehorzP99Ke8Sf+PH/D+f0orB4aL2YrJfEz6buYBc28kDdJFK1+XX/BWHxe8T+CfASTcxxXeqTxAdGZhEhP4K+Pxoory6jtBnj0ZNQkvQ/OBwMnjtUUfEi5HGc0UVz3MepHcoZASTzmvor9mD48Wvh4Q/D/AMV3flQs4TTbpz8qkn/Use3P3T+HpRRWOJpRrUXGXTU6cJXnh68ZQ66H2JpniDbLHIshweePSutgu4tQAVGDBxhhRRXycXqfbS1RmXnwokvro3umk2k7HO6NtuT7joauWnw8+JsIK2j2MgPG50Xcf0oorphG4PF1YR5U9Desvhx49u4/s+vXsUNsTkrbqqFvqQM12Wl6DaeHrEWttCq5HJxyfxooqpxsYPEVKvxGRqOrRwu0YcADrXzf+1D+03pfw60GfwpoF2s3iXUYWSJYzn7IjDHnP6H+6OpPPSiijAU41q6hPY5syqyoYZyhufAWnWTXZuGldpHc7ixOSx5JJPrmsa/h+zXssOMbf8KKK+pPjb3I7dmAUdw2cVuxXIEokz8p2n+lFFDGtz9Tv2SvHCfED4KaRPdSeddaUX0+UvywCH5Of93AH0r2XymX/VzOPZvmH68/rRRXuYZuVGLZ7dGpL2a1DfOv34g3uh/of8azdQ15LeSS2t4w0qgjEgYEvs3bVUDLELgk8AAjkniiitzqowjVkr6aodpOqf2hCIreNVMcanzMkoy8rlcgEkMrAggYI71opCqHeSXf++3X8PQfSiigzqSak4of6UUUUGR//9k=" alt="Maryam Tariq">
+<div class="bnr">
+  <div class="bnr-l">
+    <img class="bnr-ph" src="data:image/jpeg;base64,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">
     <div>
-      <div class="bn-name">Instructor Maryam Tariq · PMI Authorized Instructor</div>
-      <div class="bn-sub">+1 (646) 259-5210 · mariamtariq257@gmail.com · Enroll today — I guarantee you pass.</div>
+      <div class="bnr-nm">Instructor Maryam Tariq · PMI Authorized Instructor</div>
+      <div class="bnr-sb">+1 (646) 259-5210 · mariamtariq257@gmail.com · Enroll today — I guarantee you pass.</div>
     </div>
   </div>
-  <div class="bn-pill">📞 1:1 Session</div>
+  <div class="bnr-p">📞 Book 1:1</div>
 </div>
 
 <script>
-// ── VALUES ──────────────────────────────────────────────────────────
-let BAC=30000, PV=20000, EV=16000, AC=19000;
-let activeMetric = null;
+const $=id=>document.getElementById(id);
+let BAC=30000,PV=20000,EV=16000,AC=19000,active=null;
 
-function onInput(){
-  BAC = parseFloat(document.getElementById('v-bac').value)||0;
-  PV  = parseFloat(document.getElementById('v-pv').value)||0;
-  EV  = parseFloat(document.getElementById('v-ev').value)||0;
-  AC  = parseFloat(document.getElementById('v-ac').value)||0;
-  if(activeMetric) showMetric(activeMetric);
+function read(){
+  BAC=+$('v-bac').value||0; PV=+$('v-pv').value||0; EV=+$('v-ev').value||0; AC=+$('v-ac').value||0;
 }
+['v-bac','v-pv','v-ev','v-ac'].forEach(id=>$(id).addEventListener('input',()=>{read();if(active)show(active);}));
 
-function fmtD(n){
-  if(isNaN(n)) return '$0';
-  const abs=Math.abs(n);
-  const s = abs>=1000 ? (abs/1000).toFixed(1)+'K' : abs.toFixed(0);
-  return (n<0?'−':'')+'$'+s;
-}
-function fmtI(n){ return isNaN(n)?'0.00':n.toFixed(2); }
+const fD=n=>{ if(isNaN(n))return '—'; const a=Math.abs(n);
+  const s=a>=1000?(a/1000).toFixed(1)+'K':a.toFixed(0); return (n<0?'−':'')+'$'+s; };
+const fI=n=>isNaN(n)?'—':n.toFixed(2);
 
-// ── METRIC CONFIGS ──────────────────────────────────────────────────
-function getMetrics(){
-  const cpi = AC>0?EV/AC:0;
-  const spi = PV>0?EV/PV:0;
-  const eac = cpi>0?BAC/cpi:BAC;
-  const sv=EV-PV, cv=EV-AC, etc2=eac-AC, vac=BAC-eac;
+const COL={blue:'#2563EB',amber:'#D97706',green:'#15803D',red:'#DC2626',
+  purple:'#7C3AED',teal:'#0D9488',ink:'#0F172A'};
+const G='#15803D',GB='#EAFBF0',R='#DC2626',RB='#FDEDED',A='#D97706',AB='#FEF6E7',P='#7C3AED',PB='#F3EFFE';
+
+// metric definitions
+function metrics(){
+  const cpi=AC?EV/AC:0, spi=PV?EV/PV:0, eac=cpi?BAC/cpi:BAC;
+  const sv=EV-PV, cv=EV-AC, etc=eac-AC, vac=BAC-eac;
   const tcpi=(BAC-EV)>0&&(BAC-AC)>0?(BAC-EV)/(BAC-AC):0;
-
+  const box=(l,n,v,c)=>({l,n,v,c});
   return {
-    sv:{
-      tag:'SV', tagColor:'#D97706', name:'Schedule Variance',
-      parts:[
-        {label:'EV', name:'Earned Value', value:EV, color:'#15803D', bg:'#DCFCE7', border:'#A7F3D0'},
-        {op:'−'},
-        {label:'PV', name:'Planned Value', value:PV, color:'#D97706', bg:'#FEF3C7', border:'#FDE68A'},
-      ],
-      result: sv, fmt: fmtD,
-      isGood: sv>=0,
-      goodMsg:'✅ Ahead of Schedule', badMsg:'❌ Behind Schedule',
-      goodColor:'#15803D', badColor:'#DC2626',
-      goodBg:'#DCFCE7', badBg:'#FEE2E2',
-      meaning: sv>=0
-        ? `The project has completed <strong>${fmtD(Math.abs(sv))}</strong> more work than planned. You are ahead of schedule.`
-        : `The project is <strong>${fmtD(Math.abs(sv))}</strong> behind in planned work. Less has been accomplished than the schedule required.`,
-      tip:'SV is in dollars, not days. Positive = more earned than planned. Negative = less earned than planned.',
-      barCenter: true, barVal: Math.min(Math.max(50+sv/BAC*100,3),97),
-    },
-    cv:{
-      tag:'CV', tagColor:'#DC2626', name:'Cost Variance',
-      parts:[
-        {label:'EV', name:'Earned Value', value:EV, color:'#15803D', bg:'#DCFCE7', border:'#A7F3D0'},
-        {op:'−'},
-        {label:'AC', name:'Actual Cost', value:AC, color:'#DC2626', bg:'#FEE2E2', border:'#FECACA'},
-      ],
-      result: cv, fmt: fmtD,
-      isGood: cv>=0,
-      goodMsg:'✅ Under Budget', badMsg:'❌ Over Budget',
-      goodColor:'#15803D', badColor:'#DC2626',
-      goodBg:'#DCFCE7', badBg:'#FEE2E2',
-      meaning: cv>=0
-        ? `The project is <strong>${fmtD(Math.abs(cv))}</strong> under budget. Work is costing less than the value it produces.`
-        : `The project is <strong>${fmtD(Math.abs(cv))}</strong> over budget. More has been spent than the value of work completed.`,
-      tip:'EXAM TRAP: Never compare AC to PV. Budget performance always uses EV − AC.',
-      barCenter: true, barVal: Math.min(Math.max(50+cv/BAC*100,3),97),
-    },
-    spi:{
-      tag:'SPI', tagColor:'#B45309', name:'Schedule Performance Index',
-      parts:[
-        {label:'EV', name:'Earned Value', value:EV, color:'#15803D', bg:'#DCFCE7', border:'#A7F3D0'},
-        {op:'÷'},
-        {label:'PV', name:'Planned Value', value:PV, color:'#D97706', bg:'#FEF3C7', border:'#FDE68A'},
-      ],
-      result: spi, fmt: fmtI,
-      isGood: spi>=1,
-      goodMsg:'✅ Efficient (>1.0)', badMsg:'⚠️ Inefficient (<1.0)',
-      goodColor:'#15803D', badColor:'#B45309',
-      goodBg:'#DCFCE7', badBg:'#FEF3C7',
-      meaning: spi>=1
-        ? `For every $1 of planned work, the team is delivering <strong>$${fmtI(spi)}</strong> of value. Above 1.0 = ahead of schedule.`
-        : `For every $1 of planned work, the team only delivers <strong>$${fmtI(spi)}</strong> of value. Below 1.0 = behind schedule.`,
-      tip:'SPI above 1.0 = efficient. Below 1.0 = inefficient. The 1.0 marker on the bar shows the "on track" point.',
-      barCenter: false, barVal: Math.min(spi/2*100,97), marker:50,
-    },
-    cpi:{
-      tag:'CPI', tagColor:'#15803D', name:'Cost Performance Index',
-      parts:[
-        {label:'EV', name:'Earned Value', value:EV, color:'#15803D', bg:'#DCFCE7', border:'#A7F3D0'},
-        {op:'÷'},
-        {label:'AC', name:'Actual Cost', value:AC, color:'#DC2626', bg:'#FEE2E2', border:'#FECACA'},
-      ],
-      result: cpi, fmt: fmtI,
-      isGood: cpi>=1,
-      goodMsg:'✅ Efficient (>1.0)', badMsg:'❌ Over Budget (<1.0)',
-      goodColor:'#15803D', badColor:'#DC2626',
-      goodBg:'#DCFCE7', badBg:'#FEE2E2',
-      meaning: cpi>=1
-        ? `For every $1 spent, the project earns <strong>$${fmtI(cpi)}</strong> of value. Under budget and efficient.`
-        : `For every $1 spent, the project only earns <strong>$${fmtI(cpi)}</strong> of value. Each dollar is producing less than expected.`,
-      tip:'CPI is the most important index. CPI below 1.0 means the project is overspending per unit of work delivered.',
-      barCenter: false, barVal: Math.min(cpi/2*100,97), marker:50,
-    },
-    eac:{
-      tag:'EAC', tagColor:'#7C3AED', name:'Estimate at Completion',
-      parts:[
-        {label:'BAC', name:'Budget at Completion', value:BAC, color:'#1D4ED8', bg:'#DBEAFE', border:'#BFDBFE'},
-        {op:'÷'},
-        {label:'CPI', name:'Cost Index', value:cpi, color:'#15803D', bg:'#DCFCE7', border:'#A7F3D0', isIdx:true},
-      ],
-      result: eac, fmt: fmtD,
-      isGood: eac<=BAC,
-      goodMsg:'✅ Will finish within BAC', badMsg:'❌ Projected to overrun BAC',
-      goodColor:'#7C3AED', badColor:'#DC2626',
-      goodBg:'#EDE9FE', badBg:'#FEE2E2',
-      meaning: eac<=BAC
-        ? `At current efficiency, the project will complete for <strong>${fmtD(eac)}</strong> — ${fmtD(BAC-eac)} under the approved budget.`
-        : `At current efficiency, the project will cost <strong>${fmtD(eac)}</strong> — a projected overrun of ${fmtD(eac-BAC)} above the ${fmtD(BAC)} budget.`,
-      tip:'EAC assumes current CPI continues. It is a forecast, not a guarantee. This is the number the sponsor cares most about.',
-      barCenter: false, barVal: Math.min(eac/BAC*100,100), marker: 100,
-    },
-    etc:{
-      tag:'ETC', tagColor:'#2563EB', name:'Estimate to Complete',
-      parts:[
-        {label:'EAC', name:'Estimate at Completion', value:eac, color:'#7C3AED', bg:'#EDE9FE', border:'#DDD6FE'},
-        {op:'−'},
-        {label:'AC', name:'Actual Cost', value:AC, color:'#DC2626', bg:'#FEE2E2', border:'#FECACA'},
-      ],
-      result: etc2, fmt: fmtD,
-      isGood: true,
-      goodMsg:'💰 Remaining budget needed',
-      goodColor:'#2563EB', badColor:'#2563EB',
-      goodBg:'#DBEAFE', badBg:'#DBEAFE',
-      meaning:`The project has spent <strong>${fmtD(AC)}</strong> so far. It needs <strong>${fmtD(etc2)}</strong> more to complete. Total projected cost = ${fmtD(eac)}.`,
-      tip:'ETC = how much MORE money is needed from today. EAC = total at completion. AC = already spent.',
-      barCenter: false, barVal: Math.min(etc2/eac*100,97),
-    },
-    vac:{
-      tag:'VAC', tagColor:'#0D9488', name:'Variance at Completion',
-      parts:[
-        {label:'BAC', name:'Budget at Completion', value:BAC, color:'#1D4ED8', bg:'#DBEAFE', border:'#BFDBFE'},
-        {op:'−'},
-        {label:'EAC', name:'Estimate at Completion', value:eac, color:'#7C3AED', bg:'#EDE9FE', border:'#DDD6FE'},
-      ],
-      result: vac, fmt: fmtD,
-      isGood: vac>=0,
-      goodMsg:'✅ Projected Surplus', badMsg:'❌ Projected Overrun',
-      goodColor:'#0D9488', badColor:'#DC2626',
-      goodBg:'#CCFBF1', badBg:'#FEE2E2',
-      meaning: vac>=0
-        ? `The project is projected to finish <strong>${fmtD(vac)}</strong> under budget. BAC (${fmtD(BAC)}) > EAC (${fmtD(eac)}).`
-        : `The project is projected to finish <strong>${fmtD(Math.abs(vac))}</strong> over budget. EAC (${fmtD(eac)}) > BAC (${fmtD(BAC)}).`,
-      tip:'VAC is the bottom line forecast. Positive = good news for the sponsor. Negative = budget overrun coming.',
-      barCenter: true, barVal: Math.min(Math.max(50+vac/BAC*50,3),97),
-    },
-    tcpi:{
-      tag:'TCPI', tagColor:'#9D174D', name:'To-Complete Performance Index',
-      parts:[
-        {label:'BAC−EV', name:'Remaining Work', value:BAC-EV, color:'#D97706', bg:'#FEF3C7', border:'#FDE68A'},
-        {op:'÷'},
-        {label:'BAC−AC', name:'Remaining Budget', value:BAC-AC, color:'#2563EB', bg:'#DBEAFE', border:'#BFDBFE'},
-      ],
-      result: tcpi, fmt: fmtI,
-      isGood: tcpi<=cpi,
-      goodMsg:'✅ Achievable', badMsg:'⚠️ Must improve efficiency',
-      goodColor:'#15803D', badColor:'#B45309',
-      goodBg:'#DCFCE7', badBg:'#FEF3C7',
-      meaning: tcpi<=cpi
-        ? `Current CPI is ${fmtI(cpi)}. Required TCPI is ${fmtI(tcpi)}. Current performance is sufficient to finish within BAC.`
-        : `Current CPI is ${fmtI(cpi)}. Team must achieve TCPI of ${fmtI(tcpi)} — ${((tcpi/cpi-1)*100).toFixed(0)}% more efficient than now. Budget overrun is likely.`,
-      tip:'TCPI > current CPI = must work harder than current pace. TCPI >> CPI = overrun is virtually guaranteed.',
-      barCenter: false, barVal: Math.min(tcpi/2*100,97), marker:50,
-    },
+   sv:{tag:'SV',ac:A,name:'Schedule Variance',
+     parts:[box('EV','Earned Value',fD(EV),G),'−',box('PV','Planned Value',fD(PV),A)],
+     val:fD(sv),good:sv>=0,gm:'Ahead of Schedule',bm:'Behind Schedule',
+     bar:{center:true,pct:Math.min(Math.max(50+sv/(BAC||1)*100,3),97)}},
+   cv:{tag:'CV',ac:R,name:'Cost Variance',
+     parts:[box('EV','Earned Value',fD(EV),G),'−',box('AC','Actual Cost',fD(AC),R)],
+     val:fD(cv),good:cv>=0,gm:'Under Budget',bm:'Over Budget',
+     bar:{center:true,pct:Math.min(Math.max(50+cv/(BAC||1)*100,3),97)}},
+   spi:{tag:'SPI',ac:A,name:'Schedule Performance Index',
+     parts:[box('EV','Earned Value',fD(EV),G),'÷',box('PV','Planned Value',fD(PV),A)],
+     val:fI(spi),good:spi>=1,gm:'Efficient · >1.0',bm:'Behind · <1.0',
+     bar:{mark:50,pct:Math.min(spi/2*100,97)}},
+   cpi:{tag:'CPI',ac:G,name:'Cost Performance Index',
+     parts:[box('EV','Earned Value',fD(EV),G),'÷',box('AC','Actual Cost',fD(AC),R)],
+     val:fI(cpi),good:cpi>=1,gm:'Efficient · >1.0',bm:'Over Budget · <1.0',
+     bar:{mark:50,pct:Math.min(cpi/2*100,97)}},
+   eac:{tag:'EAC',ac:P,name:'Estimate at Completion',
+     parts:[box('BAC','Budget at Completion',fD(BAC),COL.blue),'÷',box('CPI','Cost Index',fI(cpi),G)],
+     val:fD(eac),good:eac<=BAC,gm:'Within Budget',bm:'Projected Overrun',
+     bar:{mark:100,pct:Math.min(eac/(BAC||1)*100,100)}},
+   etc:{tag:'ETC',ac:COL.blue,name:'Estimate to Complete',
+     parts:[box('EAC','Est. at Completion',fD(eac),P),'−',box('AC','Actual Cost',fD(AC),R)],
+     val:fD(etc),good:true,gm:'Remaining Spend',bm:'Remaining Spend',
+     bar:{pct:Math.min(etc/(eac||1)*100,97)}},
+   vac:{tag:'VAC',ac:COL.teal,name:'Variance at Completion',
+     parts:[box('BAC','Budget at Completion',fD(BAC),COL.blue),'−',box('EAC','Est. at Completion',fD(eac),P)],
+     val:fD(vac),good:vac>=0,gm:'Projected Surplus',bm:'Projected Overrun',
+     bar:{center:true,pct:Math.min(Math.max(50+vac/(BAC||1)*50,3),97)}},
+   tcpi:{tag:'TCPI',ac:'#BE185D',name:'To-Complete Performance Index',
+     parts:[box('BAC−EV','Remaining Work',fD(BAC-EV),A),'÷',box('BAC−AC','Remaining Budget',fD(BAC-AC),COL.blue)],
+     val:fI(tcpi),good:tcpi<=cpi,gm:'Achievable',bm:'Must Improve',
+     bar:{mark:50,pct:Math.min(tcpi/2*100,97)}},
   };
 }
 
-// ── RENDER METRIC ────────────────────────────────────────────────────
-function showMetric(key){
-  activeMetric = key;
+const ORDER=['sv','cv','spi','cpi','eac','etc','vac','tcpi'];
+const SHORT={sv:'Schedule Variance',cv:'Cost Variance',spi:'Schedule Index',cpi:'Cost Index',
+ eac:'Est. at Completion',etc:'Est. to Complete',vac:'Var. at Completion',tcpi:'To-Complete Index'};
+const FORM={sv:'EV − PV',cv:'EV − AC',spi:'EV ÷ PV',cpi:'EV ÷ AC',eac:'BAC ÷ CPI',
+ etc:'EAC − AC',vac:'BAC − EAC',tcpi:'(BAC−EV)÷(BAC−AC)'};
 
-  // Highlight active button
-  document.querySelectorAll('.metric-btn').forEach(b=>b.classList.remove('active'));
-  const btn=document.getElementById('mbtn-'+key);
-  if(btn) btn.classList.add('active');
+// build metric buttons
+$('mbtns').innerHTML=ORDER.map(k=>{
+  const m=metrics()[k];
+  return `<div class="mbtn" data-k="${k}" style="--ac:${m.ac};--acg:${m.ac}28">
+    <div class="mb-tag">${m.tag}</div>
+    <div class="mb-nm">${SHORT[k]}</div>
+    <div class="mb-f">${FORM[k]}</div></div>`;
+}).join('');
+document.querySelectorAll('.mbtn').forEach(b=>b.onclick=()=>show(b.dataset.k));
 
-  const m = getMetrics()[key];
-  const isGood = m.isGood;
-  const resultColor = isGood ? m.goodColor : m.badColor;
-  const resultBg = isGood ? m.goodBg : m.badBg;
-  const statusMsg = isGood ? m.goodMsg : (m.badMsg||m.goodMsg);
+function show(k){
+  active=k; read();
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  const m=metrics()[k];
+  const c=m.good?m.ac:R, rc=m.good?m.ac:R;
+  const badgeBg=m.good?(m.ac==='#7C3AED'?PB:(m.ac==='#0D9488'?'#E6FBF7':(m.ac==='#2563EB'?'#E8F0FE':GB))):RB;
+  const badgeC=m.good?m.ac:R;
 
-  // Build parts HTML
-  let partsHTML = '';
-  m.parts.forEach(p => {
-    if(p.op){
-      partsHTML += `<div class="fd-operator">${p.op}</div>`;
-    } else {
-      const dispVal = p.isIdx ? fmtI(p.value) : fmtD(p.value);
-      partsHTML += `
-        <div class="fd-metric-box" style="background:${p.bg};border-color:${p.border}">
-          <div class="fmb-label" style="color:${p.color}">${p.label}</div>
-          <div class="fmb-name">${p.name}</div>
-          <div class="fmb-value" style="color:${p.color}">${dispVal}</div>
-        </div>`;
-    }
-  });
+  const parts=m.parts.map(p=>{
+    if(p==='−'||p==='÷') return `<div class="op">${p}</div>`;
+    return `<div class="box" style="border-color:${p.c}44">
+      <div class="box-l" style="color:${p.c}">${p.l}</div>
+      <div class="box-n">${p.n}</div>
+      <div class="box-v" style="color:${p.c}">${p.v}</div></div>`;
+  }).join('');
 
-  // Bar HTML
-  const hasMarker = m.marker !== undefined;
-  let barHTML = '';
-  if(m.barCenter){
-    barHTML = `
-      <div class="fd-bar-wrap">
-        <div class="fd-bar-bg" style="position:relative">
-          <div class="fd-bar-fill" style="width:${m.barVal}%;background:${resultColor}"></div>
-          <div class="fd-bar-marker" style="left:50%"></div>
-        </div>
-        <div class="fd-bar-labels"><span>Negative</span><span>0</span><span>Positive</span></div>
-      </div>`;
-  } else {
-    barHTML = `
-      <div class="fd-bar-wrap">
-        <div class="fd-bar-bg" style="position:relative">
-          <div class="fd-bar-fill" style="width:${m.barVal}%;background:${resultColor}"></div>
-          ${hasMarker?`<div class="fd-bar-marker" style="left:${m.marker}%"></div>`:''}
-        </div>
-        <div class="fd-bar-labels"><span>0</span>${hasMarker?`<span style="position:absolute;left:${m.marker}%">1.0</span>`:''}<span>2.0</span></div>
-      </div>`;
+  let bar='';
+  if(m.bar){
+    const mk = m.bar.center ? 50 : (m.bar.mark ?? null);
+    bar=`<div class="line"><div class="line-bg">
+      <div class="line-fl" style="width:${m.bar.pct}%;background:${rc}"></div>
+      ${mk!==null?`<div class="line-mk" style="left:${mk}%"></div>`:''}
+    </div><div class="line-lb">
+      ${m.bar.center?'<span>−</span><span>0</span><span>+</span>':(m.bar.mark?'<span>0</span><span>1.0</span><span>2.0</span>':'<span>0</span><span></span><span>full</span>')}
+    </div></div>`;
   }
 
-  document.getElementById('formula-display').innerHTML = `
+  $('stage').style.setProperty('--acg2', m.ac+'14');
+  $('stage').style.borderColor=m.ac+'33';
+  $('stage').innerHTML=`
     <div style="width:100%;max-width:600px">
-      <div class="fd-concept">
-        <div class="fd-concept-dot" style="background:${m.tagColor}"></div>
-        <span style="color:${m.tagColor}">${m.tag}</span>
-        <span style="color:#94A3B8">—</span>
-        ${m.name}
-      </div>
-
-      <div class="fd-equation">
-        ${partsHTML}
-        <div class="fd-equals">=</div>
-        <div class="fd-result-wrap">
-          <div class="fd-result-value" style="color:${resultColor}">${m.fmt(m.result)}</div>
-          <div class="fd-result-status" style="background:${resultBg};color:${resultColor}">${statusMsg}</div>
+      <div class="fx-head"><span class="d" style="background:${m.ac}"></span>
+        <span style="color:${m.ac}">${m.tag}</span><span style="color:#B4BCCD">·</span>
+        <span style="color:${COL.ink}">${m.name}</span></div>
+      <div class="fx-eq">
+        ${parts}
+        <div class="eqls">=</div>
+        <div class="res">
+          <div class="res-v" style="color:${rc}">${m.val}</div>
+          <div class="res-b" style="background:${badgeBg};color:${badgeC}">
+            ${m.good?'✓':'✕'} ${m.good?m.gm:m.bm}</div>
         </div>
       </div>
-
-      ${barHTML}
-
-      <div class="fd-meaning" style="margin-top:16px">${m.meaning}</div>
-
-      <div class="fd-tip">💡 ${m.tip}</div>
+      ${bar}
     </div>`;
 }
 
-// ── QUIZ ─────────────────────────────────────────────────────────────
-const QUIZ_Q = [
-  {concept:'Cost Variance (CV)',
-   scenario:'Highway project: BAC=$30,000, 12 months. At month 8: PV=$20,000, EV=$16,000, AC=$19,000.',
-   data:['BAC=$30,000','PV=$20,000','EV=$16,000','AC=$19,000'],
-   q:'What is the CV and what does it tell you?',
-   opts:['CV = +$3,000 — Under budget','CV = −$3,000 — Over budget','CV = −$4,000 — Behind schedule','CV = +$1,000 — Ahead of schedule'],
-   ans:1,
-   exp:'<span class="kh">CV = EV − AC = $16,000 − $19,000 = −$3,000</span>. Negative = over budget. Spent $3,000 more than the value produced. Exam trap: never compare AC to PV.'},
-  {concept:'Schedule Variance (SV)',
-   scenario:'Same project. PV=$20,000, EV=$16,000.',
-   data:['PV=$20,000','EV=$16,000'],
-   q:'What is the SV and what does it mean?',
-   opts:['SV = +$4,000 — Ahead of schedule','SV = −$4,000 — Behind schedule','SV = −$3,000 — Over budget','SV = +$3,000 — Under budget'],
-   ans:1,
-   exp:'<span class="kh">SV = EV − PV = $16,000 − $20,000 = −$4,000</span>. Negative = behind schedule. The project has delivered $4,000 less value than planned. SV is in dollars — not days.'},
-  {concept:'CPI Calculation',
-   scenario:'EV=$16,000, AC=$19,000.',
-   data:['EV=$16,000','AC=$19,000'],
-   q:'What is the CPI and what does it mean?',
-   opts:['CPI = 1.19 — Under budget','CPI = 0.84 — Over budget','CPI = 0.80 — Behind schedule','CPI = 1.25 — Ahead of schedule'],
-   ans:1,
-   exp:'<span class="kh">CPI = EV ÷ AC = $16,000 ÷ $19,000 = 0.842</span>. Below 1.0 = over budget. For every $1 spent, only $0.84 of value is produced. CPI is the most important EVM index.'},
-  {concept:'SPI Calculation',
-   scenario:'EV=$16,000, PV=$20,000.',
-   data:['EV=$16,000','PV=$20,000'],
-   q:'What is the SPI?',
-   opts:['SPI = 1.25','SPI = 0.80','SPI = 0.84','SPI = 1.19'],
-   ans:1,
-   exp:'<span class="kh">SPI = EV ÷ PV = $16,000 ÷ $20,000 = 0.80</span>. Below 1.0 = behind schedule. Team is completing 80% of planned work per time period. SPI ≠ CPI — one is schedule, one is cost.'},
-  {concept:'EAC — Estimate at Completion',
-   scenario:'BAC=$30,000, CPI=0.842.',
-   data:['BAC=$30,000','CPI=0.842'],
-   q:'What is the EAC (assuming current CPI continues)?',
-   opts:['$25,200','$35,640','$30,000','$14,000'],
-   ans:1,
-   exp:'<span class="kh">EAC = BAC ÷ CPI = $30,000 ÷ 0.842 = $35,640</span>. The project is projected to cost $35,640 — a $5,640 overrun. EAC assumes current efficiency continues.'},
-  {concept:'ETC — Estimate to Complete',
-   scenario:'EAC=$35,640, AC=$19,000.',
-   data:['EAC=$35,640','AC=$19,000'],
-   q:'How much more money is needed to finish?',
-   opts:['$35,640','$30,000','$16,640','$5,640'],
-   ans:2,
-   exp:'<span class="kh">ETC = EAC − AC = $35,640 − $19,000 = $16,640</span>. ETC is the REMAINING spend needed. Project has already spent $19,000. Needs $16,640 more. EAC is the total.'},
-  {concept:'VAC — Variance at Completion',
-   scenario:'BAC=$30,000, EAC=$35,640.',
-   data:['BAC=$30,000','EAC=$35,640'],
-   q:'What is the VAC?',
-   opts:['VAC = +$5,640 — Surplus','VAC = −$5,640 — Projected overrun','VAC = $30,000','VAC = −$3,000'],
-   ans:1,
-   exp:'<span class="kh">VAC = BAC − EAC = $30,000 − $35,640 = −$5,640</span>. Negative = projected overrun. Project will cost $5,640 more than approved budget if efficiency stays the same.'},
-  {concept:'SV and CV — Classic Trap',
-   scenario:'EV=$45,000, PV=$40,000, AC=$50,000.',
-   data:['EV=$45,000','PV=$40,000','AC=$50,000'],
-   q:'Which is correct?',
-   opts:['Ahead of schedule AND under budget','Ahead of schedule AND over budget','Behind schedule AND under budget','Behind schedule AND over budget'],
-   ans:1,
-   exp:'<span class="kh">SV = EV−PV = $45K−$40K = +$5K → Ahead ✅</span><br><span class="kh">CV = EV−AC = $45K−$50K = −$5K → Over budget ❌</span><br>A project can be ahead of schedule AND over budget simultaneously. Calculate both independently.'},
-  {concept:'TCPI',
-   scenario:'BAC=$30,000, EV=$16,000, AC=$19,000. Must finish within $30,000.',
-   data:['BAC=$30,000','EV=$16,000','AC=$19,000'],
-   q:'What CPI must the team achieve on remaining work?',
-   opts:['TCPI = 0.84 — Easier than now','TCPI = 1.27 — Harder than now','TCPI = 1.00 — Same as now','TCPI = 0.93 — Slightly easier'],
-   ans:1,
-   exp:'<span class="kh">TCPI = (BAC−EV)÷(BAC−AC) = (30,000−16,000)÷(30,000−19,000) = 14,000÷11,000 = 1.27</span>. Current CPI = 0.84. Must achieve 1.27 — 51% more efficient. This is likely unachievable, meaning the overrun is probable.'},
-  {concept:'Agile EVM — Story Points',
-   scenario:'Sprint: planned 80 story points, completed 60. Rate = $1,000/point. Actual cost = $70,000.',
-   data:['Planned=80pts','Completed=60pts','Rate=$1,000/pt','AC=$70,000'],
-   q:'What is the SPI for this sprint?',
-   opts:['SPI = 1.33','SPI = 0.75','SPI = 0.86','SPI = 1.14'],
-   ans:1,
-   exp:'<span class="kh">SPI = Completed ÷ Planned = 60 ÷ 80 = 0.75</span>. In Agile, SPI uses story points: completed points ÷ planned points. 0.75 = team completed only 75% of planned sprint work.'},
+// FORMULA SHEET
+const FS=[
+ ['SV','Schedule Variance','SV = EV − PV',A,[['SV > 0 → Ahead ✅',GB,G],['SV < 0 → Behind ❌',RB,R]]],
+ ['CV','Cost Variance','CV = EV − AC',R,[['CV > 0 → Under ✅',GB,G],['CV < 0 → Over ❌',RB,R]]],
+ ['SPI','Schedule Perf. Index','SPI = EV ÷ PV',A,[['> 1.0 → Ahead ✅',GB,G],['< 1.0 → Behind ⚠️',AB,A]]],
+ ['CPI','Cost Perf. Index','CPI = EV ÷ AC',G,[['> 1.0 → Efficient ✅',GB,G],['< 1.0 → Over ❌',RB,R]]],
+ ['EAC','Est. at Completion','EAC = BAC ÷ CPI',P,[['≤ BAC → On budget ✅',GB,G],['> BAC → Overrun ❌',RB,R]]],
+ ['ETC','Est. to Complete','ETC = EAC − AC',COL.blue,[['Remaining spend','#E8F0FE',COL.blue]]],
+ ['VAC','Var. at Completion','VAC = BAC − EAC',COL.teal,[['> 0 → Surplus ✅',GB,G],['< 0 → Overrun ❌',RB,R]]],
+ ['TCPI','To-Complete Index','TCPI = (BAC−EV)÷(BAC−AC)','#BE185D',[['≤ CPI → OK ✅',GB,G],['> CPI → Harder ⚠️',AB,A]]],
 ];
+$('fgrid').innerHTML=FS.map(([tag,nm,f,ac,pills])=>`
+  <div class="fc" style="--ac:${ac}">
+    <div class="fc-top"><span class="fc-nm">${nm}</span><span class="fc-tag">${tag}</span></div>
+    <div class="fc-f">${f}</div>
+    <div class="fc-r">${pills.map(([t,bg,c])=>`<span class="fc-p" style="background:${bg};color:${c}">${t}</span>`).join('')}</div>
+  </div>`).join('');
 
-let quizCur=0, quizScore=0, quizOrder=[];
-function initQuiz(){
-  quizOrder=[...QUIZ_Q].sort(()=>Math.random()-.5);
-  quizCur=0; quizScore=0;
-  updateQScore(); renderQ();
-}
-function updateQScore(){
-  document.getElementById('quiz-score-display').textContent=`${quizScore} / ${quizCur}`;
-}
+const TRAPS=[
+ ['Comparing AC to PV','Budget performance = CV = EV − AC. Never compare AC to PV — it has no meaning.'],
+ ['SV measured in days','SV is in dollars — planned value vs earned value. Not calendar days.'],
+ ['Confusing EAC and ETC','EAC = total at completion. ETC = remaining from today. ETC = EAC − AC.'],
+ ['Wrong TCPI denominator','TCPI = (BAC−EV) ÷ (BAC−AC). Remaining work over remaining budget.'],
+];
+$('traps').innerHTML=TRAPS.map(([t,x])=>`
+  <div class="trap"><div class="i">⚠️</div><div>
+    <div class="trap-t">${t}</div><div class="trap-x">${x}</div></div></div>`).join('');
+
+// QUIZ
+const QUIZ=[
+ {cn:'Cost Variance (CV)',sc:'Highway project: BAC=$30,000, 12 months. Month 8: PV=$20,000, EV=$16,000, AC=$19,000.',
+  data:['BAC=$30,000','PV=$20,000','EV=$16,000','AC=$19,000'],
+  q:'What is the CV and what does it mean?',
+  o:['CV = +$3,000 — Under budget','CV = −$3,000 — Over budget','CV = −$4,000 — Behind schedule','CV = +$1,000 — Ahead'],a:1,
+  e:'<span class="k">CV = EV − AC = 16,000 − 19,000 = −3,000</span>. Negative = over budget. Never compare AC to PV.'},
+ {cn:'Schedule Variance (SV)',sc:'Same project. PV=$20,000, EV=$16,000.',data:['PV=$20,000','EV=$16,000'],
+  q:'What is the SV?',o:['+$4,000 — Ahead','−$4,000 — Behind schedule','−$3,000 — Over budget','+$3,000 — Under'],a:1,
+  e:'<span class="k">SV = EV − PV = 16,000 − 20,000 = −4,000</span>. Negative = behind schedule. SV is in dollars, not days.'},
+ {cn:'CPI',sc:'EV=$16,000, AC=$19,000.',data:['EV=$16,000','AC=$19,000'],
+  q:'What is the CPI?',o:['1.19 — Under budget','0.84 — Over budget','0.80 — Behind','1.25 — Ahead'],a:1,
+  e:'<span class="k">CPI = EV ÷ AC = 16,000 ÷ 19,000 = 0.84</span>. Below 1.0 = over budget. Only $0.84 of value per $1 spent.'},
+ {cn:'SPI',sc:'EV=$16,000, PV=$20,000.',data:['EV=$16,000','PV=$20,000'],
+  q:'What is the SPI?',o:['1.25','0.80','0.84','1.19'],a:1,
+  e:'<span class="k">SPI = EV ÷ PV = 16,000 ÷ 20,000 = 0.80</span>. Below 1.0 = behind schedule.'},
+ {cn:'EAC',sc:'BAC=$30,000, CPI=0.842.',data:['BAC=$30,000','CPI=0.842'],
+  q:'What is the EAC (current CPI continues)?',o:['$25,200','$35,640','$30,000','$14,000'],a:1,
+  e:'<span class="k">EAC = BAC ÷ CPI = 30,000 ÷ 0.842 = 35,640</span>. Projected $5,640 overrun.'},
+ {cn:'ETC',sc:'EAC=$35,640, AC=$19,000.',data:['EAC=$35,640','AC=$19,000'],
+  q:'How much more is needed to finish?',o:['$35,640','$30,000','$16,640','$5,640'],a:2,
+  e:'<span class="k">ETC = EAC − AC = 35,640 − 19,000 = 16,640</span>. Remaining spend from today.'},
+ {cn:'VAC',sc:'BAC=$30,000, EAC=$35,640.',data:['BAC=$30,000','EAC=$35,640'],
+  q:'What is the VAC?',o:['+$5,640 — Surplus','−$5,640 — Overrun','$30,000','−$3,000'],a:1,
+  e:'<span class="k">VAC = BAC − EAC = 30,000 − 35,640 = −5,640</span>. Negative = projected overrun.'},
+ {cn:'SV & CV Trap',sc:'EV=$45,000, PV=$40,000, AC=$50,000.',data:['EV=$45,000','PV=$40,000','AC=$50,000'],
+  q:'Which is correct?',o:['Ahead & under budget','Ahead & over budget','Behind & under budget','Behind & over budget'],a:1,
+  e:'<span class="k">SV=+5K → Ahead ✅ · CV=−5K → Over ❌</span>. You can be ahead of schedule AND over budget.'},
+ {cn:'TCPI',sc:'BAC=$30,000, EV=$16,000, AC=$19,000. Must finish within budget.',data:['BAC=$30,000','EV=$16,000','AC=$19,000'],
+  q:'What CPI is needed on remaining work?',o:['0.84 — Easier','1.27 — Harder','1.00 — Same','0.93 — Easier'],a:1,
+  e:'<span class="k">TCPI = (30,000−16,000)÷(30,000−19,000) = 14,000÷11,000 = 1.27</span>. Current CPI 0.84 → overrun likely.'},
+ {cn:'Agile EVM',sc:'Sprint: planned 80 pts, done 60. $1,000/pt. Cost $70,000.',data:['Planned=80','Done=60','$1,000/pt','AC=$70,000'],
+  q:'What is the SPI?',o:['1.33','0.75','0.86','1.14'],a:1,
+  e:'<span class="k">SPI = 60 ÷ 80 = 0.75</span>. Story points completed ÷ planned.'},
+];
+let qi=0,qs=0,qo=[];
+function initQuiz(){ qo=[...QUIZ].sort(()=>Math.random()-.5); qi=0; qs=0; upd(); renderQ(); }
+function upd(){ $('q-score').textContent=`${qs} / ${qi}`; }
 function renderQ(){
-  const c=document.getElementById('quiz-container');
-  if(quizCur>=quizOrder.length){
-    const p=Math.round(quizScore/quizOrder.length*100);
-    c.innerHTML=`<div style="text-align:center;padding:36px 24px;background:#fff;border-radius:18px;border:1.5px solid #E5E7EB">
-      <div style="font-size:60px;margin-bottom:14px">${p>=80?'🏆':p>=60?'💪':'📚'}</div>
-      <div style="font-size:24px;font-weight:900;color:#1E1B4B;margin-bottom:8px">${p>=80?'EVM Master!':p>=60?'Strong Work!':'Keep Going'}</div>
-      <div style="font-size:13px;color:#64748B;margin-bottom:24px">${quizScore} / ${quizOrder.length} correct — ${p}%</div>
-      <button onclick="initQuiz()" style="background:linear-gradient(135deg,#7C3AED,#0D9488);color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:13px;font-weight:800;cursor:pointer;font-family:Inter,sans-serif">🔄 Try Again</button>
-    </div>`;
+  const box=$('q-box');
+  if(qi>=qo.length){
+    const p=Math.round(qs/qo.length*100);
+    $('q-ring').textContent=p>=80?'🏆':p>=60?'💪':'📚';
+    box.innerHTML=`<div style="text-align:center;padding:36px 20px;border:2px solid var(--line);border-radius:18px;background:#fff">
+      <div style="font-size:58px;margin-bottom:12px">${p>=80?'🏆':p>=60?'💪':'📚'}</div>
+      <div style="font-size:24px;font-weight:900;color:var(--ink);margin-bottom:6px">${p>=80?'EVM Master!':p>=60?'Strong work!':'Keep going'}</div>
+      <div style="font-size:13px;color:var(--grey);margin-bottom:22px">${qs} / ${qo.length} correct — ${p}%</div>
+      <button class="qnext show" style="max-width:220px;margin:0 auto" onclick="initQuiz()">🔄 Try Again</button></div>`;
     return;
   }
-  const q=quizOrder[quizCur];
-  c.innerHTML=`<div class="qcard">
-    <div class="qcard-sc">
-      <div class="qcard-sc-label">📋 Scenario</div>
-      <div class="qcard-sc-text">${q.scenario}</div>
-      <div class="qcard-data">${q.data.map(d=>`<span class="qcard-datum">${d}</span>`).join('')}</div>
-    </div>
-    <div class="qcard-concept">📐 ${q.concept}</div>
-    <div class="qcard-q">${q.q}</div>
-    <div class="qcard-opts">
-      ${q.opts.map((o,i)=>`<button class="qcard-opt" id="qo${i}" onclick="answerQ(${i})">${String.fromCharCode(65+i)}) ${o}</button>`).join('')}
-    </div>
-    <div class="qcard-exp" id="qexp"></div>
-    <button class="quiz-next" id="qnext" onclick="nextQ()">${quizCur===quizOrder.length-1?'See Results 🏆':'Next Question →'}</button>
+  const q=qo[qi];
+  box.innerHTML=`<div class="qc">
+    <div class="qc-sc"><div class="qc-scl">📋 Scenario</div><div class="qc-sct">${q.sc}</div>
+      <div class="qc-data">${q.data.map(d=>`<span class="qc-dm">${d}</span>`).join('')}</div></div>
+    <div class="qc-cn">📐 ${q.cn}</div>
+    <div class="qc-q">${q.q}</div>
+    <div class="qc-opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}">${String.fromCharCode(65+i)}) ${o}</button>`).join('')}</div>
+    <div class="qc-exp" id="qexp"></div>
+    <button class="qnext" id="qnext">${qi===qo.length-1?'See Results 🏆':'Next Question →'}</button>
   </div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(+b.dataset.i));
+  $('qnext').onclick=()=>{qi++;upd();renderQ();};
 }
-function answerQ(chosen){
-  const q=quizOrder[quizCur];
-  quizCur++;
-  if(chosen===q.ans) quizScore++;
-  updateQScore();
-  q.opts.forEach((_,i)=>{
-    const el=document.getElementById('qo'+i);
-    el.classList.add('done');
-    if(i===q.ans) el.classList.add('correct');
-    else if(i===chosen) el.classList.add('wrong');
-  });
-  const exp=document.getElementById('qexp');
-  exp.innerHTML=`<strong>${chosen===q.ans?'✅ Correct!':'❌ Incorrect — '}</strong> ${q.exp}`;
-  exp.className='qcard-exp show';
-  document.getElementById('qnext').classList.add('show');
-}
-function nextQ(){ renderQ(); }
-
-// ── TABS ─────────────────────────────────────────────────────────────
-function switchTab(t){
-  document.querySelectorAll('.tab').forEach((el,i)=>{
-    const ids=['sim','formulas','quiz'];
-    el.classList.toggle('active',ids[i]===t);
-  });
-  document.querySelectorAll('.tab-content').forEach(el=>{
-    el.classList.toggle('active',el.id==='tab-'+t);
-  });
+function answer(ch){
+  const q=qo[qi];
+  const opts=$('q-box').querySelectorAll('.opt');
+  opts.forEach((el,i)=>{el.classList.add('done');
+    if(i===q.a)el.classList.add('correct'); else if(i===ch)el.classList.add('wrong');});
+  const ok=ch===q.a; if(ok)qs++; upd();
+  const ex=$('qexp'); ex.className='qc-exp show '+(ok?'ok':'no');
+  ex.innerHTML=`<b>${ok?'✓ Correct! ':'✕ Not quite. '}</b>${q.e}`;
+  $('qnext').classList.add('show');
 }
 
-// ── INIT ─────────────────────────────────────────────────────────────
+// TABS
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  const k=t.dataset.t;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  document.querySelectorAll('.tabc').forEach(c=>c.classList.toggle('on',c.id==='tab-'+k));
+});
+
+// INIT
+read();
 initQuiz();
-// Auto-show SV on load
-setTimeout(()=>showMetric('sv'), 300);
+setTimeout(()=>show('sv'),250);
 </script>
 </body>
 </html>
